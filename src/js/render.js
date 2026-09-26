@@ -558,14 +558,20 @@
     const topThreeAssignments = topThreeIds
       .map((id) => state.assignments.find((assignment) => assignment.id === id))
       .filter(Boolean);
-    const completedPriorityCount = topThreeAssignments.filter(assignmentIsComplete).length;
-    const totalTasksToday = dueToday.length || active.length;
-    const completedToday = state.assignments.filter((assignment) => assignment.completed && timestampDateKey(assignment.completedAt) === currentTodayKey()).length;
-    const focusTodaySeconds = getFocusSessionsForDate(state.focusSessions, currentTodayKey()).reduce((sum, session) => sum + (Number(session.actualDurationSeconds) || 0), 0);
+    const todayTaskIds = new Set([
+      ...dueToday.map((assignment) => assignment.id),
+      ...topThreeIds,
+      todayPlan.oneThingAssignmentId
+    ].filter(Boolean));
+    const todayTaskSet = Array.from(todayTaskIds)
+      .map((id) => state.assignments.find((assignment) => assignment.id === id))
+      .filter(Boolean);
+    const completedTodayTasks = todayTaskSet.filter(assignmentIsComplete).length;
+    const totalTasksToday = todayTaskSet.length || active.length;
+    const focusSessionsToday = getFocusSessionsForDate(state.focusSessions, currentTodayKey());
+    const focusTodaySeconds = focusSessionsToday.reduce((sum, session) => sum + (Number(session.actualDurationSeconds) || 0), 0);
     const currentStreak = getCurrentStreak(state.assignments, state.focusSessions);
     const weekDays = getWeekDays(new Date());
-    const weeklyGoal = momentum ? momentum.getWeeklyGoal(state, weekDays) : { target: 0 };
-    const weeklyMomentum = momentum ? momentum.momentumForDateRange(state, weekDays[0].key, weekDays[weekDays.length - 1].key) : 0;
     const gamification = momentum ? momentum.normalizeGamification(state.gamification) : { enabled: false, showStreaks: true };
 
     setText(".hero-panel__text h2", `${greeting}${name}.`);
@@ -573,12 +579,11 @@
     setText("[data-today-summary]", todaySummary(overdue, dueToday, topThreeAssignments));
     const heroMeter = document.querySelector(".hero-panel__meter");
     if (heroMeter) {
+      const energyLabels = { low: "Low", okay: "Okay", good: "Good" };
       heroMeter.replaceChildren(
-        summaryMetric(`${completedToday} / ${Math.max(totalTasksToday, completedToday)}`, "Tasks done", "check"),
+        summaryMetric(`${completedTodayTasks} / ${Math.max(totalTasksToday, completedTodayTasks)}`, "Today tasks", "check"),
         summaryMetric(formatFocusDuration(focusTodaySeconds), "Focus today", "timer"),
-        gamification.enabled
-          ? summaryMetric(`${weeklyMomentum} / ${weeklyGoal.target || 0}`, "Momentum", "spark")
-          : summaryMetric("Off", "Momentum", "spark"),
+        summaryMetric(todayPlan.energy ? energyLabels[todayPlan.energy] : "Check in", "Energy", "spark"),
         summaryMetric(gamification.showStreaks ? (currentStreak ? `${currentStreak} day${currentStreak === 1 ? "" : "s"}` : "Start") : "Hidden", "Streak", "flame")
       );
     }
@@ -725,6 +730,8 @@
         }));
       }
     }
+
+    renderTodayWeeklyFocus(state, weekDays);
   }
 
   function getDailyPlan(state) {
@@ -770,27 +777,44 @@
       return;
     }
 
+    const microsteps = selected
+      ? (selected.subtasks || []).filter((subtask) => !subtask.completed).slice(0, 3)
+      : [];
+    const completedSteps = selected ? (selected.subtasks || []).filter((subtask) => subtask.completed).length : 0;
+    const totalSteps = selected ? (selected.subtasks || []).length : 0;
+    const stepText = totalSteps
+      ? `${completedSteps} of ${totalSteps} steps done`
+      : "No steps added yet";
+
     container.replaceChildren(
-      createElement("div", { className: `one-thing-card${selected ? "" : " one-thing-card--empty"}` }, [
-        createElement("div", { className: "one-thing-card__body" }, [
+      createElement("div", { className: `one-thing-card focus-now-card${selected ? "" : " one-thing-card--empty"}` }, [
+        createElement("div", { className: "one-thing-card__body focus-now-card__body" }, [
           createElement("p", { className: "helper-text", text: "If you only finish one thing today, make it this." }),
           selected
-            ? createElement("strong", { text: selected.title })
-            : createElement("strong", { text: "Choose one active assignment" }),
+            ? createElement("strong", { className: "focus-now-card__title", text: selected.title })
+            : createElement("strong", { className: "focus-now-card__title", text: "Choose one active assignment" }),
           selected
-            ? createElement("small", { text: `${courseName(state, selected.courseId)} - ${friendlyDateLabel(selected.dueDate)}` })
-            : createElement("small", { text: "This stays separate from your Top 3." })
+            ? createElement("small", { text: `${courseName(state, selected.courseId)} - ${friendlyDateLabel(selected.dueDate)} - ${priorityLabel(selected.priority)} priority` })
+            : createElement("small", { text: "This stays separate from your Top 3." }),
+          selected ? createElement("div", { className: "focus-now-card__steps", "aria-label": stepText }, [
+            createElement("span", { className: "status status--progress", text: stepText }),
+            microsteps.length
+              ? createElement("ul", { className: "focus-now-steps" }, microsteps.map((subtask) => createElement("li", { text: subtask.title || "Untitled step" })))
+              : createElement("p", { className: "helper-text", text: "Break this assignment into steps when you want a smaller next move." })
+          ]) : document.createTextNode("")
         ]),
-        createElement("label", { for: "one-thing-select" }, [
-          document.createTextNode("Assignment"),
-          createElement("select", { id: "one-thing-select", "data-one-thing-select": "" }, [
-            createElement("option", { value: "", text: "Choose assignment", selected: !selected }),
-            ...active.map((assignment) => createElement("option", { value: assignment.id, text: assignment.title, selected: selected && assignment.id === selected.id }))
+        createElement("div", { className: "focus-now-card__controls" }, [
+          createElement("label", { for: "one-thing-select" }, [
+            document.createTextNode("Assignment"),
+            createElement("select", { id: "one-thing-select", "data-one-thing-select": "" }, [
+              createElement("option", { value: "", text: "Choose assignment", selected: !selected }),
+              ...active.map((assignment) => createElement("option", { value: assignment.id, text: assignment.title, selected: selected && assignment.id === selected.id }))
+            ])
+          ]),
+          createElement("div", { className: "button-row" }, [
+            selected ? createElement("button", { className: "button button--primary", type: "button", "data-start-focus": selected.id, text: "Focus Now" }) : document.createTextNode(""),
+            selected ? createElement("button", { className: "button button--ghost", type: "button", "data-clear-one-thing": "", text: "Clear" }) : document.createTextNode("")
           ])
-        ]),
-        createElement("div", { className: "button-row" }, [
-          selected ? createElement("button", { className: "button button--secondary button--compact", type: "button", "data-start-focus": selected.id, text: "Focus" }) : document.createTextNode(""),
-          selected ? createElement("button", { className: "button button--ghost button--compact", type: "button", "data-clear-one-thing": "", text: "Clear" }) : document.createTextNode("")
         ])
       ])
     );
@@ -806,6 +830,35 @@
     const list = panel.querySelector(".record-list");
     if (list && matches.length) {
       list.replaceChildren(...matches.map((assignment) => todayAssignmentRecord(state, assignment)));
+    }
+  }
+
+  function renderTodayWeeklyFocus(state, weekDays) {
+    const weekStrip = document.querySelector("[data-today-weekly-focus]");
+    const summary = document.querySelector("[data-today-weekly-focus-summary]");
+    if (!weekStrip && !summary) return;
+
+    const activity = getWeeklyFocusActivity(state.focusSessions, weekDays);
+    const totalSeconds = activity.reduce((sum, day) => sum + day.seconds, 0);
+    const maxMinutes = Math.max(...activity.map((day) => day.minutes), 0);
+
+    if (weekStrip) {
+      weekStrip.replaceChildren(...activity.map((day) => {
+        const height = maxMinutes ? Math.max(14, Math.round((day.minutes / maxMinutes) * 100)) : 0;
+        const valueText = `${day.label} - ${formatFocusDuration(day.seconds)} focused`;
+        return createElement("span", { className: day.minutes ? "week-strip__day" : "week-strip__day week-strip__day--empty", style: { "--activity-height": `${height}%` }, "aria-label": valueText }, [
+          createElement("em", { className: "sr-only", text: valueText }),
+          createElement("i", { "aria-hidden": "true" }),
+          createElement("b", { text: day.shortLabel }),
+          createElement("small", { text: day.minutes ? `${day.minutes}m` : "0" })
+        ]);
+      }));
+    }
+
+    if (summary) {
+      summary.textContent = totalSeconds
+        ? `${formatFocusDuration(totalSeconds)} focused this week.`
+        : "Finish a focus session to start filling in this week.";
     }
   }
 

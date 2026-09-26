@@ -70,7 +70,7 @@
         </header>
 
         <main id="main-content" class="content" tabindex="-1">
-          <section class="screen page is-active" id="today" data-title="Today">
+          <section class="screen page is-active today-page" id="today" data-title="Today">
             <div class="page-header today-header section-heading section-heading--page">
               <div class="hero-panel__text today-header__text">
                 <p class="eyebrow">Today</p>
@@ -84,23 +84,32 @@
               </div>
             </div>
 
-            <section class="planner-section quick-capture-panel" aria-labelledby="quick-capture-heading">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Quick capture</p>
-                  <h2 id="quick-capture-heading">Got something on your mind?</h2>
-                </div>
-              </div>
-              <form class="quick-capture-form" novalidate data-quick-capture-form>
-                <label class="sr-only" for="today-quick-capture">Got something on your mind?</label>
-                <input id="today-quick-capture" type="text" maxlength="180" placeholder="Capture a thought or task..." aria-describedby="today-quick-capture-error today-quick-capture-status" data-quick-capture-input>
-                <button class="button button--primary" type="submit">Add</button>
-                <p id="today-quick-capture-error" class="field-error" hidden></p>
-              </form>
-              <p class="helper-text" id="today-quick-capture-status" data-quick-capture-status>Saved to Brain Dump so you can sort it later.</p>
-            </section>
-
             <div class="today-grid">
+              <section class="planner-section one-thing-panel" aria-labelledby="one-thing-heading">
+                <div class="section-heading">
+                  <div>
+                    <p class="eyebrow">Focus Now</p>
+                    <h2 id="one-thing-heading">Today's One Thing</h2>
+                  </div>
+                </div>
+                <div data-one-thing></div>
+              </section>
+
+              <section class="planner-section quick-capture-panel" aria-labelledby="quick-capture-heading">
+                <div class="section-heading">
+                  <div>
+                    <p class="eyebrow">Quick capture</p>
+                    <h2 id="quick-capture-heading">Clear your head</h2>
+                  </div>
+                </div>
+                <form class="quick-capture-form" novalidate data-quick-capture-form>
+                  <label class="sr-only" for="today-quick-capture">Capture a thought or task</label>
+                  <input id="today-quick-capture" type="text" maxlength="180" placeholder="Thought, task, reminder..." aria-describedby="today-quick-capture-error today-quick-capture-status" data-quick-capture-input>
+                  <button class="button button--primary" type="submit">Add</button>
+                  <p id="today-quick-capture-error" class="field-error" hidden></p>
+                </form>
+                <p class="helper-text" id="today-quick-capture-status" data-quick-capture-status>Saved to Brain Dump so you can sort it later.</p>
+              </section>
 
               <section class="planner-section energy-panel" aria-labelledby="energy-heading">
                 <div class="section-heading">
@@ -125,16 +134,6 @@
                   </div>
                 </div>
                 <div class="record-list"></div>
-              </section>
-
-              <section class="planner-section one-thing-panel" aria-labelledby="one-thing-heading">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Today's One Thing</p>
-                    <h2 id="one-thing-heading">If you only finish one thing today...</h2>
-                  </div>
-                </div>
-                <div data-one-thing></div>
               </section>
 
               <section class="planner-section priority-panel" aria-labelledby="priority-heading">
@@ -181,13 +180,24 @@
               <section class="panel focus-card" aria-labelledby="mini-focus-heading">
                 <div class="section-heading">
                   <div>
-                    <p class="eyebrow">Focus</p>
+                    <p class="eyebrow">Study rhythm</p>
                     <h2 id="mini-focus-heading">Ready for one block</h2>
                   </div>
                 </div>
                 <div class="timer-readout">25:00</div>
                 <p>No assignment linked yet.</p>
                 <a class="button button--primary" href="#focus">Start Focus Session</a>
+              </section>
+
+              <section class="planner-section planner-section--quiet weekly-focus-panel" aria-labelledby="today-weekly-focus-heading">
+                <div class="section-heading">
+                  <div>
+                    <p class="eyebrow">Weekly focus</p>
+                    <h2 id="today-weekly-focus-heading">This week's rhythm</h2>
+                  </div>
+                </div>
+                <div class="week-strip week-strip--compact" data-today-weekly-focus></div>
+                <p class="helper-text" data-today-weekly-focus-summary>Finish a focus session to start filling in this week.</p>
               </section>
 
               <section class="planner-section planner-section--quiet" aria-labelledby="upcoming-heading">

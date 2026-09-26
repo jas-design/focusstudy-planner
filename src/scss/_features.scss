@@ -53,6 +53,10 @@
   font-weight: var(--weight-bold);
 }
 
+.today-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .priority-list li.is-done strong {
   color: var(--color-muted);
   text-decoration: line-through;
@@ -129,18 +133,19 @@
 
 .one-thing-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem) auto;
-  gap: var(--space-3);
-  align-items: end;
-  padding: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+  gap: var(--space-5);
+  align-items: stretch;
+  padding: var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-primary-soft) 32%, var(--color-surface));
+  background: color-mix(in srgb, var(--color-primary-soft) 44%, var(--color-surface));
 }
 
 .one-thing-card__body {
   display: grid;
-  gap: var(--space-1);
+  align-content: start;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -158,20 +163,80 @@
   background: color-mix(in srgb, var(--color-surface-muted) 56%, var(--color-surface));
 }
 
+.focus-now-card__title {
+  color: var(--color-ink);
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  line-height: var(--leading-heading);
+}
+
+.focus-now-card__controls {
+  display: grid;
+  align-content: space-between;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+}
+
+.focus-now-card__steps {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.focus-now-steps {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.focus-now-steps li {
+  position: relative;
+  padding-left: var(--space-4);
+  color: var(--color-text);
+}
+
+.focus-now-steps li::before {
+  content: "";
+  position: absolute;
+  top: 0.65em;
+  left: var(--space-1);
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
 .focus-card {
   display: grid;
   align-content: start;
-  position: sticky;
-  top: var(--space-5);
+  gap: var(--space-3);
 }
 
 .timer-readout {
-  margin: 0.25rem 0 1rem;
+  margin: 0;
   font-family: var(--font-mono);
-  font-size: clamp(3rem, 7vw, 4rem);
+  font-size: clamp(2.25rem, 4vw, 3rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
+}
+
+.week-strip--compact {
+  min-height: 8rem;
+}
+
+.week-strip--compact span {
+  grid-template-rows: minmax(3.5rem, 1fr) auto auto;
+  min-height: 6.75rem;
+}
+
+.week-strip--compact small {
+  font-size: 0.75rem;
 }
 
 .timer-readout--large {
@@ -1814,6 +1879,10 @@
   .quick-capture-form,
   .course-time-row,
   .schedule-list-row {
+    grid-template-columns: 1fr;
+  }
+
+  .today-summary {
     grid-template-columns: 1fr;
   }
 
