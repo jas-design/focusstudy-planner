@@ -41,6 +41,20 @@ textarea:focus {
   border-color: var(--color-primary);
 }
 
+.today-page input,
+.today-page select,
+.today-page textarea {
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-warm-surface) 92%, transparent);
+}
+
+.today-page input:focus,
+.today-page select:focus,
+.today-page textarea:focus {
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 24%, transparent);
+}
+
 input[aria-invalid="true"],
 select[aria-invalid="true"],
 textarea[aria-invalid="true"],

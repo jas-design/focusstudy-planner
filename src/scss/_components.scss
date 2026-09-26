@@ -83,6 +83,19 @@
   background: color-mix(in srgb, var(--color-surface) 86%, transparent);
 }
 
+.today-page .daily-summary__metric {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 6.75rem;
+  padding: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--color-warm-surface);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+
 .daily-summary__icon {
   width: 1.125rem;
   height: 1.125rem;
@@ -94,16 +107,80 @@
   stroke-width: 1.8;
 }
 
+.daily-summary__icon-tile,
+.today-icon-tile {
+  display: inline-grid;
+  width: 2.625rem;
+  height: 2.625rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-sage-soft);
+  color: var(--color-sage);
+}
+
+.daily-summary__metric--timer .daily-summary__icon-tile {
+  background: var(--color-peach-soft);
+  color: var(--color-peach);
+}
+
+.daily-summary__metric--spark .daily-summary__icon-tile {
+  background: var(--color-butter-soft);
+  color: var(--color-butter);
+}
+
+.daily-summary__metric--flame .daily-summary__icon-tile {
+  background: var(--color-lavender-soft);
+  color: var(--color-lavender);
+}
+
+.daily-summary__copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .daily-summary__metric strong {
   color: var(--color-ink);
   font-size: var(--text-section-title);
   line-height: 1;
 }
 
+.today-page .daily-summary__metric strong {
+  font-size: clamp(1.55rem, 2.1vw, 1.95rem);
+  font-weight: var(--weight-heavy);
+}
+
 .daily-summary__metric small {
   color: var(--color-muted);
   font-size: var(--text-metadata);
   font-weight: var(--weight-heavy);
+}
+
+.daily-summary__metric em {
+  color: var(--color-subtle);
+  font-size: var(--text-metadata);
+  font-style: normal;
+  font-weight: var(--weight-medium);
+}
+
+.today-icon-tile--sage {
+  background: var(--color-sage-soft);
+  color: var(--color-sage);
+}
+
+.today-icon-tile--butter {
+  background: var(--color-butter-soft);
+  color: var(--color-butter);
+}
+
+.today-icon-tile--peach {
+  background: var(--color-peach-soft);
+  color: var(--color-peach);
+}
+
+.today-icon-tile--lavender {
+  background: var(--color-lavender-soft);
+  color: var(--color-lavender);
 }
 
 .section-heading--page {
@@ -212,6 +289,7 @@
 
 .button--with-icon svg,
 .energy-option svg,
+.today-icon-tile svg,
 .ui-icon {
   width: 1.125rem;
   height: 1.125rem;

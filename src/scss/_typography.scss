@@ -86,3 +86,18 @@ small {
   letter-spacing: var(--tracking-metadata);
 }
 
+.today-page {
+  font-size: 0.95rem;
+}
+
+.today-page .eyebrow,
+.today-page .metadata {
+  font-size: clamp(0.68rem, 0.9vw, 0.76rem);
+  font-weight: var(--weight-heavy);
+}
+
+.today-page .helper-text,
+.today-page small {
+  font-size: clamp(0.78rem, 0.9vw, 0.84rem);
+  line-height: 1.4;
+}

@@ -253,13 +253,13 @@
   display: grid;
   grid-template-areas:
     "one one capture"
-    "priorities tasks energy"
-    "priorities tasks focus"
-    "upcoming tasks weekly"
-    "exams tasks weekly"
+    "one one energy"
+    "priorities tasks tasks"
+    "upcoming weekly weekly"
+    "exams focus focus"
     "fit fit fit"
     "overdue overdue overdue";
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(18rem, 0.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(20rem, 0.78fr);
   gap: var(--space-5);
   align-items: start;
 }
@@ -269,7 +269,7 @@
 }
 
 .today-summary {
-  width: min(100%, 36rem);
+  width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -477,16 +477,16 @@
   .today-grid {
     grid-template-areas:
       "one"
-      "capture"
       "energy"
+      "capture"
       "fit"
       "priorities"
       "tasks"
-      "overdue"
       "upcoming"
-      "exams"
+      "weekly"
       "focus"
-      "weekly";
+      "exams"
+      "overdue";
   }
 
   .course-grid,

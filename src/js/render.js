@@ -65,6 +65,7 @@
   function createSvgIcon(name, className) {
     const paths = {
       check: ["M5 12.5 9.5 17 19 7"],
+      play: ["M8 5v14l11-7-11-7Z"],
       timer: ["M12 8v5l3 2", "M9 2h6", "M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"],
       spark: ["M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z", "M18 16v4M16 18h4"],
       focus: ["M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z", "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"],
@@ -581,10 +582,10 @@
     if (heroMeter) {
       const energyLabels = { low: "Low", okay: "Okay", good: "Good" };
       heroMeter.replaceChildren(
-        summaryMetric(`${completedTodayTasks} / ${Math.max(totalTasksToday, completedTodayTasks)}`, "Today tasks", "check"),
-        summaryMetric(formatFocusDuration(focusTodaySeconds), "Focus today", "timer"),
-        summaryMetric(todayPlan.energy ? energyLabels[todayPlan.energy] : "Check in", "Energy", "spark"),
-        summaryMetric(gamification.showStreaks ? (currentStreak ? `${currentStreak} day${currentStreak === 1 ? "" : "s"}` : "Start") : "Hidden", "Streak", "flame")
+        summaryMetric(`${completedTodayTasks} / ${Math.max(totalTasksToday, completedTodayTasks)}`, "Tasks done", "check", "Planned for today"),
+        summaryMetric(formatFocusDuration(focusTodaySeconds), "Focus today", "timer", `${focusSessionsToday.length} ${focusSessionsToday.length === 1 ? "session" : "sessions"}`),
+        summaryMetric(todayPlan.energy ? energyLabels[todayPlan.energy] : "Check in", "Current energy", "spark", "Optional check-in"),
+        summaryMetric(gamification.showStreaks ? (currentStreak ? `${currentStreak} day${currentStreak === 1 ? "" : "s"}` : "Start") : "Hidden", "Current streak", "flame", "Activity rhythm")
       );
     }
 
@@ -693,6 +694,17 @@
       }
     }
 
+    const heroFocusCta = document.querySelector("[data-today-focus-cta]");
+    if (heroFocusCta) {
+      heroFocusCta.toggleAttribute("data-start-focus", Boolean(focusCardAssignment && !state.activeFocusSession));
+      if (focusCardAssignment && !state.activeFocusSession) {
+        heroFocusCta.setAttribute("data-start-focus", focusCardAssignment.id);
+      } else {
+        heroFocusCta.removeAttribute("data-start-focus");
+      }
+      heroFocusCta.querySelector("span").textContent = state.activeFocusSession ? "Return to Focus" : "Start Focus";
+    }
+
     const upcomingList = document.querySelector('[aria-labelledby="upcoming-heading"] .record-list');
     if (upcomingList) {
       if (!upcoming.length) {
@@ -744,11 +756,16 @@
     };
   }
 
-  function summaryMetric(value, label, iconName) {
-    return createElement("span", { className: "daily-summary__metric" }, [
-      iconName ? createSvgIcon(iconName, "daily-summary__icon") : document.createTextNode(""),
-      createElement("strong", { text: value }),
-      createElement("small", { text: label })
+  function summaryMetric(value, label, iconName, context) {
+    return createElement("span", { className: `daily-summary__metric daily-summary__metric--${iconName}` }, [
+      createElement("span", { className: "daily-summary__icon-tile" }, [
+        iconName ? createSvgIcon(iconName, "daily-summary__icon") : document.createTextNode("")
+      ]),
+      createElement("span", { className: "daily-summary__copy" }, [
+        createElement("strong", { text: value }),
+        createElement("small", { text: label }),
+        context ? createElement("em", { text: context }) : document.createTextNode("")
+      ])
     ]);
   }
 
@@ -773,15 +790,29 @@
     const selected = active.find((assignment) => assignment.id === plan.oneThingAssignmentId) || null;
 
     if (!active.length) {
-      container.replaceChildren(emptyState("No active assignments yet.", "Add an assignment before choosing Today's One Thing.", true));
+      container.replaceChildren(
+        createElement("div", { className: "one-thing-card focus-now-card one-thing-card--empty" }, [
+          createElement("div", { className: "focus-now-card__lead" }, [
+            createElement("span", { className: "today-icon-tile today-icon-tile--sage" }, [
+              createSvgIcon("target", "ui-icon")
+            ]),
+            createElement("div", {}, [
+              createElement("p", { className: "eyebrow", text: "Focus now" }),
+              createElement("strong", { className: "focus-now-card__title", text: "Choose one thing to make today lighter." }),
+              createElement("small", { text: "Add an assignment first. No need to do everything today." })
+            ])
+          ])
+        ])
+      );
       return;
     }
 
     const microsteps = selected
-      ? (selected.subtasks || []).filter((subtask) => !subtask.completed).slice(0, 3)
+      ? (selected.subtasks || []).slice(0, 3)
       : [];
     const completedSteps = selected ? (selected.subtasks || []).filter((subtask) => subtask.completed).length : 0;
     const totalSteps = selected ? (selected.subtasks || []).length : 0;
+    const focusMinutes = Number(state.settings.focusDuration) || 25;
     const stepText = totalSteps
       ? `${completedSteps} of ${totalSteps} steps done`
       : "No steps added yet";
@@ -789,23 +820,42 @@
     container.replaceChildren(
       createElement("div", { className: `one-thing-card focus-now-card${selected ? "" : " one-thing-card--empty"}` }, [
         createElement("div", { className: "one-thing-card__body focus-now-card__body" }, [
-          createElement("p", { className: "helper-text", text: "If you only finish one thing today, make it this." }),
-          selected
-            ? createElement("strong", { className: "focus-now-card__title", text: selected.title })
-            : createElement("strong", { className: "focus-now-card__title", text: "Choose one active assignment" }),
-          selected
-            ? createElement("small", { text: `${courseName(state, selected.courseId)} - ${friendlyDateLabel(selected.dueDate)} - ${priorityLabel(selected.priority)} priority` })
-            : createElement("small", { text: "This stays separate from your Top 3." }),
+          createElement("div", { className: "focus-now-card__lead" }, [
+            createElement("span", { className: "today-icon-tile today-icon-tile--sage" }, [
+              createSvgIcon("target", "ui-icon")
+            ]),
+            createElement("div", {}, [
+              createElement("p", { className: "eyebrow", text: "Focus now" }),
+              selected
+                ? createElement("strong", { className: "focus-now-card__title", text: selected.title })
+                : createElement("strong", { className: "focus-now-card__title", text: "Choose one thing to make today lighter." }),
+              selected
+                ? createElement("small", { text: `${courseName(state, selected.courseId)} - ${friendlyDateLabel(selected.dueDate)} - ${priorityLabel(selected.priority)} priority` })
+                : createElement("small", { text: "No need to do everything today." })
+            ])
+          ]),
           selected ? createElement("div", { className: "focus-now-card__steps", "aria-label": stepText }, [
             createElement("span", { className: "status status--progress", text: stepText }),
             microsteps.length
-              ? createElement("ul", { className: "focus-now-steps" }, microsteps.map((subtask) => createElement("li", { text: subtask.title || "Untitled step" })))
+              ? createElement("ul", { className: "focus-now-steps" }, microsteps.map((subtask) => createElement("li", { className: subtask.completed ? "is-done" : "" }, [
+                createElement("span", { className: "focus-now-step__check", "aria-hidden": "true", text: subtask.completed ? "done" : "" }),
+                createElement("span", { text: subtask.title || "Untitled step" })
+              ])))
               : createElement("p", { className: "helper-text", text: "Break this assignment into steps when you want a smaller next move." })
           ]) : document.createTextNode("")
         ]),
         createElement("div", { className: "focus-now-card__controls" }, [
+          selected ? createElement("div", { className: "focus-mini-card", "aria-label": `${focusMinutes} minute focus block` }, [
+            createElement("span", { className: "focus-mini-ring", "aria-hidden": "true" }, [
+              createElement("strong", { text: `${focusMinutes}:00` })
+            ]),
+            createElement("div", { className: "focus-mini-card__copy" }, [
+              createElement("strong", { text: "Focus block" }),
+              createElement("small", { text: `${focusMinutes} min to make starting lighter` })
+            ])
+          ]) : document.createTextNode(""),
           createElement("label", { for: "one-thing-select" }, [
-            document.createTextNode("Assignment"),
+            document.createTextNode("Choose assignment"),
             createElement("select", { id: "one-thing-select", "data-one-thing-select": "" }, [
               createElement("option", { value: "", text: "Choose assignment", selected: !selected }),
               ...active.map((assignment) => createElement("option", { value: assignment.id, text: assignment.title, selected: selected && assignment.id === selected.id }))
