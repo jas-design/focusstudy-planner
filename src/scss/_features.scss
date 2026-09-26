@@ -61,7 +61,6 @@
 .record span,
 .course-card p,
 .metric-card p,
-.focus-card p,
 .today-date {
   color: var(--color-muted);
 }
@@ -78,6 +77,9 @@
 
 .today-page .planner-section,
 .today-page .panel {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   border: 0;
   border-radius: var(--radius-xl);
   background: var(--color-warm-surface);
@@ -244,7 +246,7 @@
   z-index: 1;
   min-width: 0;
   gap: var(--space-5);
-  margin-top: calc(var(--space-2) * -1);
+  margin-top: 0;
 }
 
 .today-page .daily-summary__metric {
@@ -436,52 +438,8 @@
 }
 
 .today-page .quick-capture-panel {
-  position: relative;
-  overflow: hidden;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--color-butter-soft) 62%, var(--color-warm-surface)), var(--color-warm-surface));
-}
-
-.quick-capture-illustration {
-  position: absolute;
-  right: var(--space-4);
-  top: var(--space-4);
-  width: 5.5rem;
-  color: var(--color-butter);
-  opacity: 0.42;
-  pointer-events: none;
-}
-
-.quick-capture-illustration svg {
-  width: 100%;
-  height: auto;
-  overflow: visible;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-}
-
-.quick-capture-illustration .paper {
-  fill: var(--color-warm-surface);
-}
-
-.quick-capture-illustration .tab {
-  fill: var(--color-butter-soft);
-}
-
-.quick-capture-illustration .line {
-  stroke: color-mix(in srgb, var(--color-muted) 58%, transparent);
-}
-
-.quick-capture-illustration .pencil {
-  fill: var(--color-peach-soft);
-  stroke: var(--color-peach);
-}
-
-.quick-capture-illustration .spark {
-  stroke: var(--color-sage);
 }
 
 .today-page .quick-capture-form {
@@ -548,14 +506,21 @@
 }
 
 .today-page .one-thing-card {
-  min-height: 20rem;
-  padding: var(--space-8);
+  min-height: 17rem;
+  padding: var(--space-6);
   border: 0;
   border-radius: calc(var(--radius-xl) + 0.25rem);
   background:
     radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--color-mint-soft) 78%, transparent) 0 24%, transparent 25%),
     color-mix(in srgb, var(--color-sage-soft) 54%, var(--color-warm-surface));
   box-shadow: var(--shadow-soft);
+}
+
+.today-page .one-thing-card--active {
+  min-height: auto;
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--color-coral-soft) 70%, transparent) 0 20%, transparent 21%),
+    color-mix(in srgb, var(--color-peach-soft) 38%, var(--color-warm-surface));
 }
 
 .focus-now-card__lead {
@@ -694,16 +659,6 @@
   font-size: var(--text-small);
 }
 
-.focus-card {
-  display: grid;
-  align-content: start;
-  gap: var(--space-3);
-}
-
-.today-page .focus-card {
-  background: color-mix(in srgb, var(--color-peach-soft) 36%, var(--color-warm-surface));
-}
-
 .timer-readout {
   margin: 0;
   font-family: var(--font-mono);
@@ -719,11 +674,12 @@
 
 .today-page .weekly-focus-panel {
   background: color-mix(in srgb, var(--color-blue-soft) 42%, var(--color-warm-surface));
+  min-height: 16rem;
 }
 
 .today-page .week-strip {
   gap: var(--space-4);
-  min-height: 13rem;
+  min-height: 12rem;
 }
 
 .week-strip--compact span {
@@ -2393,10 +2349,6 @@
   .course-card dl,
   .course-summary {
     grid-template-columns: 1fr;
-  }
-
-  .focus-card {
-    position: static;
   }
 
   .priority-signal {

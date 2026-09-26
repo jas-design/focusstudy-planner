@@ -165,23 +165,12 @@
   gap: var(--space-3);
 }
 
-.utility-search {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: min(100%, 36rem);
-  min-height: 3.25rem;
-  margin-right: auto;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg));
-  box-shadow: var(--shadow-card);
-  color: var(--color-muted);
+.top-utility-bar__spacer {
+  flex: 1 1 auto;
 }
 
-.utility-search svg,
 .utility-pill svg,
-.utility-icon svg {
+.utility-avatar svg {
   width: 1.125rem;
   height: 1.125rem;
   fill: none;
@@ -191,22 +180,7 @@
   stroke-width: 1.8;
 }
 
-.utility-search input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-ink);
-  font: inherit;
-}
-
-.utility-search input:disabled {
-  opacity: 1;
-  cursor: default;
-}
-
 .utility-pill,
-.utility-icon,
 .utility-avatar {
   display: inline-flex;
   align-items: center;
@@ -224,20 +198,15 @@
   padding: 0 var(--space-4);
   font: inherit;
   font-weight: var(--weight-bold);
-  cursor: pointer;
+  text-decoration: none;
 }
 
 .utility-pill svg {
   color: var(--color-sage);
 }
 
-.utility-icon,
 .utility-avatar {
   width: 2.75rem;
-}
-
-.utility-icon {
-  color: var(--color-muted);
 }
 
 .utility-avatar,
@@ -354,15 +323,14 @@
 .today-grid {
   display: grid;
   grid-template-areas:
-    "one one capture"
-    "one one energy"
-    "priorities tasks tasks"
-    "weekly weekly weekly"
-    "upcoming tasks tasks"
-    "exams focus focus"
-    "fit fit fit"
-    "overdue overdue overdue";
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(19rem, 0.72fr);
+    "one energy"
+    "one capture"
+    "priorities tasks"
+    "weekly upcoming"
+    "weekly exams"
+    "fit fit"
+    "overdue overdue";
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 0.85fr);
   gap: var(--space-5);
   align-items: start;
 }
@@ -401,19 +369,25 @@
   grid-area: tasks;
 }
 
+.today-grid > * {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
 .overdue-panel,
-.focus-card,
 [aria-labelledby="upcoming-heading"],
-[aria-labelledby="exam-preview-heading"] {
+[aria-labelledby="exam-preview-heading"],
+.today-task-panel,
+.priority-panel,
+.energy-panel,
+.quick-capture-panel {
   align-content: start;
+  align-self: start;
 }
 
 .overdue-panel {
   grid-area: overdue;
-}
-
-.focus-card {
-  grid-area: focus;
 }
 
 .weekly-focus-panel {
@@ -580,15 +554,14 @@
   .today-grid {
     grid-template-areas:
       "one"
-      "capture"
       "energy"
-      "fit"
+      "capture"
       "priorities"
       "tasks"
       "weekly"
       "upcoming"
-      "focus"
       "exams"
+      "fit"
       "overdue";
   }
 
@@ -596,6 +569,22 @@
   .exam-grid,
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $bp-mobile) {
+  .today-grid {
+    grid-template-areas:
+      "one"
+      "energy"
+      "capture"
+      "priorities"
+      "tasks"
+      "upcoming"
+      "weekly"
+      "exams"
+      "fit"
+      "overdue";
   }
 }
 
@@ -753,12 +742,12 @@
 
   .today-grid {
     grid-template-areas:
-      "one one"
-      "capture energy"
+      "one energy"
+      "one capture"
       "priorities tasks"
       "weekly weekly"
-      "upcoming focus"
-      "exams fit"
+      "upcoming exams"
+      "fit fit"
       "overdue overdue";
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -778,13 +767,6 @@
     padding: var(--space-3) var(--space-4) 0;
   }
 
-  .utility-search {
-    order: 2;
-    width: 100%;
-    min-height: 3rem;
-    margin-right: 0;
-  }
-
   .utility-pill {
     flex: 1;
     justify-content: flex-start;
@@ -795,10 +777,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .utility-icon {
-    display: none;
   }
 
   .content {

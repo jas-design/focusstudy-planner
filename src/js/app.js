@@ -2203,6 +2203,25 @@
       return;
     }
 
+    const focusEnergy = event.target.closest("[data-focus-energy]");
+    if (focusEnergy) {
+      const moveToEnergyPanel = () => {
+        const energyPanel = document.querySelector("#today-energy");
+        if (!energyPanel) return;
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        energyPanel.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "center" });
+        energyPanel.focus({ preventScroll: true });
+      };
+
+      if (activeId() !== "today") {
+        window.location.hash = "#today";
+        window.setTimeout(moveToEnergyPanel, 0);
+      } else {
+        moveToEnergyPanel();
+      }
+      return;
+    }
+
     const energyButton = event.target.closest("[data-set-energy]");
     if (energyButton) {
       setEnergy(energyButton.dataset.setEnergy);

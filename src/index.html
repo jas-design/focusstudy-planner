@@ -78,15 +78,11 @@
         </header>
 
         <div class="top-utility-bar" aria-label="Planner utilities">
-          <label class="utility-search" for="global-visual-search">
-            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
-            <input id="global-visual-search" type="search" placeholder="Search tasks, courses, notes..." autocomplete="off" disabled aria-label="Search tasks, courses, notes. Search is visual only in this phase.">
-          </label>
-          <button class="utility-pill" type="button" data-set-energy="okay">
+          <span class="top-utility-bar__spacer" aria-hidden="true"></span>
+          <button class="utility-pill" type="button" data-focus-energy>
             <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8.5 10h.01M15.5 10h.01M8.5 14.2c1.8 1.6 5.2 1.6 7 0"/></svg>
             <span>How are you feeling?</span>
           </button>
-          <span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0v4l2 3H4l2-3V9Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span>
           <span class="utility-avatar" aria-hidden="true">F</span>
         </div>
 
@@ -118,7 +114,7 @@
                 <div data-one-thing></div>
               </section>
 
-              <section class="planner-section quick-capture-panel" aria-labelledby="quick-capture-heading">
+              <section class="planner-section quick-capture-panel" id="today-quick-capture-panel" aria-labelledby="quick-capture-heading">
                 <div class="section-heading">
                   <span class="today-icon-tile today-icon-tile--butter" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a6 6 0 1 1 8 0c-.8.7-1.2 1.5-1.2 2.5H9.2C9.2 15.5 8.8 14.7 8 14Z"/></svg></span>
                   <div>
@@ -126,7 +122,6 @@
                     <h2 id="quick-capture-heading">Clear your head</h2>
                   </div>
                 </div>
-                <span class="quick-capture-illustration" aria-hidden="true"><svg viewBox="0 0 96 64"><path class="paper" d="M20 14h42c6 0 10 4 10 10v26H30c-6 0-10-4-10-10V14Z"/><path class="tab" d="M57 14h10l5 8H58l-1-8Z"/><path class="line" d="M31 28h26M31 38h19"/><path class="pencil" d="m67 42 13-13 6 6-13 13-8 2 2-8Z"/><path class="spark" d="M18 49v5M15.5 51.5h5M78 12v6M75 15h6"/></svg></span>
                 <form class="quick-capture-form" novalidate data-quick-capture-form>
                   <label class="sr-only" for="today-quick-capture">Capture a thought or task</label>
                   <input id="today-quick-capture" type="text" maxlength="180" placeholder="Thought, task, reminder..." aria-describedby="today-quick-capture-error today-quick-capture-status" data-quick-capture-input>
@@ -136,7 +131,7 @@
                 <p class="helper-text" id="today-quick-capture-status" data-quick-capture-status>Saved to Brain Dump so you can sort it later.</p>
               </section>
 
-              <section class="planner-section energy-panel" aria-labelledby="energy-heading">
+              <section class="planner-section energy-panel" id="today-energy" aria-labelledby="energy-heading" tabindex="-1">
                 <div class="section-heading">
                   <div>
                     <p class="eyebrow">Energy</p>
@@ -200,18 +195,6 @@
                   </div>
                 </div>
                 <div class="record-list" data-overdue-list></div>
-              </section>
-
-              <section class="panel focus-card" aria-labelledby="mini-focus-heading">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Study rhythm</p>
-                    <h2 id="mini-focus-heading">Ready for one block</h2>
-                  </div>
-                </div>
-                <div class="timer-readout">25:00</div>
-                <p>No assignment linked yet.</p>
-                <a class="button button--primary" href="#focus">Start Focus Session</a>
               </section>
 
               <section class="planner-section planner-section--quiet weekly-focus-panel" aria-labelledby="today-weekly-focus-heading">

@@ -592,7 +592,7 @@
         summaryMetric(`${completedTodayTasks} / ${Math.max(totalTasksToday, completedTodayTasks)}`, "Tasks done", "check", "Planned for today"),
         summaryMetric(formatFocusDuration(focusTodaySeconds), "Focus today", "timer", `${focusSessionsToday.length} ${focusSessionsToday.length === 1 ? "session" : "sessions"}`),
         summaryMetric(todayPlan.energy ? energyLabels[todayPlan.energy] : "Check in", "Current energy", "spark", "Optional check-in"),
-        summaryMetric(gamification.showStreaks ? (currentStreak ? `${currentStreak} day${currentStreak === 1 ? "" : "s"}` : "Start") : "Hidden", "Current streak", "flame", "Activity rhythm")
+        summaryMetric(gamification.showStreaks ? (currentStreak ? `${currentStreak} day${currentStreak === 1 ? "" : "s"}` : "No streak yet") : "Hidden", "Current streak", "flame", currentStreak ? "Activity rhythm" : "Start today")
       );
     }
 
@@ -676,31 +676,6 @@
       ? state.assignments.find((assignment) => assignment.id === todayPlan.oneThingAssignmentId && !assignmentIsComplete(assignment))
       : null;
     const focusCardAssignment = activeSessionAssignment || oneThingAssignment || null;
-    const focusLink = document.querySelector(".focus-card .button");
-    const focusHeading = document.querySelector(".focus-card #mini-focus-heading");
-    setText(".focus-card .timer-readout", `${String(focusMinutes).padStart(2, "0")}:00`);
-    if (focusHeading) {
-      focusHeading.textContent = state.activeFocusSession
-        ? "Focus in progress"
-        : focusCardAssignment
-          ? "Suggested focus"
-          : "Ready for one block";
-    }
-    setText(".focus-card p", state.activeFocusSession
-      ? (activeSessionAssignment ? activeSessionAssignment.title : "Focus session running")
-      : focusCardAssignment
-        ? focusCardAssignment.title
-        : "No assignment selected. Choose what you want to focus on.");
-    if (focusLink) {
-      focusLink.textContent = state.activeFocusSession ? "Return to Focus" : focusCardAssignment ? "Start Focus Session" : "Choose Focus";
-      focusLink.toggleAttribute("data-start-focus", Boolean(focusCardAssignment && !state.activeFocusSession));
-      if (focusCardAssignment && !state.activeFocusSession) {
-        focusLink.setAttribute("data-start-focus", focusCardAssignment.id);
-      } else {
-        focusLink.removeAttribute("data-start-focus");
-      }
-    }
-
     const heroFocusCta = document.querySelector("[data-today-focus-cta]");
     if (heroFocusCta) {
       heroFocusCta.toggleAttribute("data-start-focus", Boolean(focusCardAssignment && !state.activeFocusSession));
@@ -793,6 +768,50 @@
   function renderOneThing(state, plan) {
     const container = document.querySelector("[data-one-thing]");
     if (!container) return;
+    const session = state.activeFocusSession;
+
+    if (session) {
+      const assignment = state.assignments.find((item) => item.id === session.assignmentId) || null;
+      const remainingSeconds = Math.max(0, activeFocusRemainingSeconds(session));
+      const title = assignment ? assignment.title : "Focus session running";
+      const details = assignment
+        ? `${courseName(state, assignment.courseId)} - ${formatTimer(remainingSeconds)} remaining`
+        : `${formatTimer(remainingSeconds)} remaining`;
+
+      container.replaceChildren(
+        createElement("div", { className: "one-thing-card focus-now-card one-thing-card--active" }, [
+          createElement("div", { className: "one-thing-card__body focus-now-card__body" }, [
+            createElement("div", { className: "focus-now-card__lead" }, [
+              createElement("span", { className: "today-icon-tile today-icon-tile--sage" }, [
+                createSvgIcon("target", "ui-icon")
+              ]),
+              createElement("div", {}, [
+                createElement("p", { className: "eyebrow", text: "Focus in progress" }),
+                createElement("strong", { className: "focus-now-card__title", text: title }),
+                createElement("small", { text: details })
+              ])
+            ]),
+            createElement("p", { className: "helper-text", text: "Stay with the current block, then come back here for the next small step." })
+          ]),
+          createElement("div", { className: "focus-now-card__controls" }, [
+            createElement("div", { className: "focus-mini-card", "aria-label": `${formatTimer(remainingSeconds)} remaining in the active focus block` }, [
+              createElement("span", { className: "focus-mini-ring", "aria-hidden": "true" }, [
+                createElement("strong", { text: formatTimer(remainingSeconds) })
+              ]),
+              createElement("div", { className: "focus-mini-card__copy" }, [
+                createElement("strong", { text: "Current block" }),
+                createElement("small", { text: session.isPaused ? "Paused" : "In progress" })
+              ])
+            ]),
+            createElement("div", { className: "button-row" }, [
+              createElement("a", { className: "button button--primary", href: "#focus", text: "Return to Focus" })
+            ])
+          ])
+        ])
+      );
+      return;
+    }
+
     const active = activeAssignments(state).sort(sortAssignments);
     const selected = active.find((assignment) => assignment.id === plan.oneThingAssignmentId) || null;
 
