@@ -1,0 +1,91 @@
+html {
+  background: var(--color-bg);
+  scrollbar-color: color-mix(in srgb, var(--color-muted) 55%, transparent) var(--color-surface-muted);
+  scrollbar-width: thin;
+}
+
+body {
+  min-height: 100svh;
+  margin: 0;
+  color: var(--color-text);
+  background: var(--color-bg);
+  text-rendering: optimizeLegibility;
+}
+
+body.is-layer-open {
+  overflow: hidden;
+}
+
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+}
+
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-muted) 55%, transparent);
+  border: 3px solid var(--color-surface-muted);
+  border-radius: 999px;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+:focus-visible {
+  outline: 0;
+  box-shadow: var(--shadow-focus);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-primary) 24%, transparent);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 1rem;
+  left: 1rem;
+  transform: translateY(-150%);
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: var(--color-bg);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,0 +1,20 @@
+@use "variables" as *;
+
+@media (max-width: $bp-mobile) {
+  .section-heading,
+  .modal-actions {
+    display: grid;
+  }
+
+  .inline-form,
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button,
+  .btn,
+  .inline-form .button,
+  .inline-form .btn {
+    width: 100%;
+  }
+}

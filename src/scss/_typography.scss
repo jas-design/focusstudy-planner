@@ -1,0 +1,88 @@
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-normal);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-page-title);
+  line-height: var(--leading-tight);
+}
+
+h2 {
+  font-size: var(--text-section-title);
+  line-height: var(--leading-heading);
+}
+
+h3 {
+  font-size: var(--text-subsection);
+  line-height: var(--leading-heading);
+}
+
+p {
+  color: var(--color-text);
+}
+
+small {
+  font-size: var(--text-small);
+}
+
+.page-title {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.page-title h1,
+.page-title__heading {
+  margin: 0;
+  font-size: var(--text-page-title);
+  line-height: var(--leading-tight);
+}
+
+.page-title p,
+.page-title__supporting {
+  max-width: var(--content-readable);
+  color: var(--color-muted);
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.section-heading h2,
+.panel h2 {
+  margin: 0;
+  font-size: var(--text-section-title);
+  line-height: var(--leading-heading);
+}
+
+.section-heading p {
+  color: var(--color-muted);
+}
+
+.eyebrow,
+.metadata {
+  color: var(--color-subtle);
+  font-size: var(--text-metadata);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-metadata);
+}
+

@@ -1,0 +1,35 @@
+FocusStudy
+Version 1.0
+Personal Use License
+
+FocusStudy is a downloadable digital product. Purchasing FocusStudy grants you a non-exclusive license to use the product for personal use.
+
+You may:
+
+- Use FocusStudy for personal use.
+- Use FocusStudy on personally owned devices.
+- Create and store your own planner data.
+- Create backups of your own copy.
+
+You may not:
+
+- Resell FocusStudy.
+- Redistribute the application.
+- Share the downloadable files publicly.
+- Upload the product to file-sharing sites.
+- Repackage the product for resale.
+- Sell modified copies.
+- Claim FocusStudy as your own product.
+- Distribute the source or production application as a competing product.
+
+Your Data
+
+Customer-created planner data belongs to you. The restrictions in this license apply to the FocusStudy software and product files, not to your own assignments, notes, courses, or planner information.
+
+Backups and Responsibility
+
+FocusStudy is provided as a digital productivity tool. Your planner data is stored locally in your browser, so you are responsible for exporting and keeping backups of important information.
+
+FocusStudy
+Student Planner Web App
+Version 1.0
