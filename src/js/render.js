@@ -574,10 +574,17 @@
     const currentStreak = getCurrentStreak(state.assignments, state.focusSessions);
     const weekDays = getWeekDays(new Date());
     const gamification = momentum ? momentum.normalizeGamification(state.gamification) : { enabled: false, showStreaks: true };
+    const studentName = state.user.name || "Student";
+    const initial = studentName.trim().charAt(0).toUpperCase() || "F";
 
     setText(".hero-panel__text h2", `${greeting}${name}.`);
     setText("[data-today-date]", new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }));
     setText("[data-today-summary]", todaySummary(overdue, dueToday, topThreeAssignments));
+    setText("[data-sidebar-student-name]", studentName);
+    setText("[data-sidebar-streak]", currentStreak ? `${currentStreak} day streak` : "Start your streak");
+    document.querySelectorAll(".sidebar-profile__avatar, .utility-avatar").forEach((avatar) => {
+      avatar.textContent = initial;
+    });
     const heroMeter = document.querySelector(".hero-panel__meter");
     if (heroMeter) {
       const energyLabels = { low: "Low", okay: "Okay", good: "Good" };
