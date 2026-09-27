@@ -1,4 +1,4 @@
-﻿---
+---
 name: focusstudy-page-redesign
 description: Redesign one FocusStudy screen from a supplied visual reference while preserving existing functionality, state, storage, and the established FocusStudy visual direction.
 metadata:

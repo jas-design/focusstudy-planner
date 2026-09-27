@@ -141,3 +141,16 @@ Before considering a feature complete:
 - test keyboard navigation
 
 Do not add features that are not required by PRODUCT-SPEC.md.
+## Codex Skills
+
+Use repository-local skills for recurring FocusStudy workflows.
+
+- For any visual or UI design change, invoke `$focusstudy-visual-direction`.
+- For redesigning a specific page from a visual reference, invoke `$focusstudy-visual-direction` and `$focusstudy-page-redesign`.
+- After any significant layout, navigation, responsive, or visual redesign, invoke `$focusstudy-visual-qa` before considering the task complete.
+
+Do not duplicate the full skill instructions inside normal task prompts.
+
+When a local reference image path is provided, inspect the image before implementing the redesign.
+
+Do not copy all skill content into AGENTS.md.

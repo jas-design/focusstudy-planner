@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+
+# Local visual references
+design-references-local/
+
+# OS/editor files
+.DS_Store
+Thumbs.db

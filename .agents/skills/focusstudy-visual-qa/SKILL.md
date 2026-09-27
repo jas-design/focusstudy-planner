@@ -1,4 +1,4 @@
-﻿---
+---
 name: focusstudy-visual-qa
 description: Perform focused UI, UX, responsive, theme, and regression QA after FocusStudy page redesigns or major visual layout changes, without adding new features.
 metadata:
