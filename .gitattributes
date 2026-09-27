@@ -1,0 +1,3 @@
+dist/FocusStudyPlanner.html -diff linguist-generated=true
+release/**/*.html -diff linguist-generated=true
+release/**/*.zip binary

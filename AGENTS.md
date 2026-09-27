@@ -154,3 +154,33 @@ Do not duplicate the full skill instructions inside normal task prompts.
 When a local reference image path is provided, inspect the image before implementing the redesign.
 
 Do not copy all skill content into AGENTS.md.
+## Codex Efficiency Rules
+
+- Minimize context use. Read only files and ranges directly relevant to the requested change.
+- Never read or inspect `dist/FocusStudyPlanner.html` during normal development; it is generated output.
+- Never use `dist/FocusStudyPlanner.html` as a source of truth. Edit files under `src/`.
+- After a build, verify the generated file only by build success, existence, and file size unless production QA explicitly requires inspection.
+- Do not include generated HTML content in diffs, summaries, or analysis.
+- Do not read `release/` artifacts during ordinary development.
+- Read product, design, QA, and architecture documents only when the current task requires them.
+- For small CSS/UI adjustments, inspect only relevant selectors and nearby context.
+- Do not open `src/js/render.js` or `src/js/app.js` for CSS-only tasks unless markup or behavior must change.
+- Do not invoke `$focusstudy-page-redesign` for minor visual adjustments or `$focusstudy-visual-qa` after every micro-adjustment.
+- Use `$focusstudy-visual-direction` only when design-language guidance is needed.
+- Prefer targeted search with `rg` before opening large files.
+- Prefer the smallest correct patch and do not refactor unrelated code.
+- Do not repeat analysis of an unchanged visual reference unless a new comparison is requested.
+
+### Micro Adjustment
+
+Use for spacing, size, alignment, typography, color, shadow, radius, simple responsive fixes, and isolated CSS defects.
+
+1. Locate the relevant selector.
+2. Read only nearby code.
+3. Make the smallest patch.
+4. Run only directly relevant checks.
+5. Do not perform repository-wide QA or inspect generated artifacts.
+
+### Full Page Redesign
+
+Use only for substantial information-architecture, layout, navigation, or page-wide redesign work. Use the appropriate FocusStudy redesign skills and full responsive QA.
