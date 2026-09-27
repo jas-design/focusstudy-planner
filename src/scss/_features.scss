@@ -107,7 +107,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-5);
-  min-height: 9rem;
+  min-height: 10.25rem;
   padding: var(--space-6) var(--space-8);
   border: 0;
   border-radius: var(--radius-xl);
@@ -133,8 +133,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  width: 5.75rem;
-  height: 5.75rem;
+  width: 6.25rem;
+  height: 6.25rem;
   place-items: center;
   border-radius: calc(var(--radius-xl) + 0.35rem);
   background:
@@ -144,8 +144,8 @@
 }
 
 .today-hero__illustration svg {
-  width: 4.9rem;
-  height: 4.9rem;
+  width: 5.25rem;
+  height: 5.25rem;
   overflow: visible;
   fill: none;
   stroke: currentColor;
@@ -219,7 +219,7 @@
 
 .today-header h2 {
   max-width: 18ch;
-  font-size: clamp(2.1rem, 3.2vw, 2.65rem);
+  font-size: clamp(2.15rem, 3.2vw, 2.85rem);
   font-weight: var(--weight-heavy);
 }
 
@@ -496,6 +496,8 @@
 }
 
 .today-page .one-thing-panel {
+  display: grid;
+  min-height: 100%;
   padding: 0;
   background: transparent;
   box-shadow: none;
@@ -505,8 +507,14 @@
   display: none;
 }
 
+.today-page .one-thing-panel > [data-one-thing] {
+  display: grid;
+  min-width: 0;
+}
+
 .today-page .one-thing-card {
-  min-height: 17rem;
+  min-height: 24rem;
+  height: 100%;
   padding: var(--space-6);
   border: 0;
   border-radius: calc(var(--radius-xl) + 0.25rem);
@@ -517,7 +525,7 @@
 }
 
 .today-page .one-thing-card--active {
-  min-height: auto;
+  min-height: 24rem;
   background:
     radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--color-coral-soft) 70%, transparent) 0 20%, transparent 21%),
     color-mix(in srgb, var(--color-peach-soft) 38%, var(--color-warm-surface));
@@ -539,7 +547,7 @@
 .today-page .focus-now-card__title {
   display: block;
   max-width: 22ch;
-  font-size: clamp(1.6rem, 2.6vw, 2.25rem);
+  font-size: clamp(1.75rem, 2.8vw, 2.45rem);
   font-weight: var(--weight-heavy);
 }
 
@@ -555,6 +563,7 @@
 }
 
 .today-page .focus-now-card__controls {
+  align-content: center;
   border: 0;
   background: color-mix(in srgb, var(--color-warm-surface) 72%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-sage) 14%, transparent);
