@@ -576,6 +576,28 @@
     announce(nextValue ? `Energy set to ${nextValue}.` : "Energy cleared.");
   }
 
+  function tomorrowDateKey() {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() + 1);
+    return localDateKey(date);
+  }
+
+  function moveAssignmentsToTomorrow(assignmentIds) {
+    const ids = new Set(assignmentIds.filter(Boolean));
+    if (!ids.size) return;
+    const tomorrow = tomorrowDateKey();
+    stateApi.updateAppState((state) => {
+      state.assignments.forEach((assignment) => {
+        if (ids.has(assignment.id) && !assignmentIsComplete(assignment)) {
+          assignment.dueDate = tomorrow;
+          assignment.updatedAt = nowIso();
+        }
+      });
+      return state;
+    });
+    announce(ids.size === 1 ? "Moved to tomorrow." : `Moved ${ids.size} items to tomorrow.`);
+  }
   function setOneThing(assignmentId) {
     stateApi.updateAppState((state) => {
       const assignment = assignmentId ? findAssignment(state, assignmentId) : null;
@@ -1293,6 +1315,7 @@
     const endTime = new Date(Date.now() + plannedDurationMinutes * 60000).toISOString();
 
     stateApi.updateAppState((draft) => {
+      updateTodayPlan(draft, (plan) => { plan.oneThingAssignmentId = selectedAssignmentId; });
       draft.activeFocusSession = {
         id: stateApi.createId("focus"),
         mode: "focus",
@@ -1423,6 +1446,7 @@
       : Number(state.settings.breakDuration) || Number(current.breakDurationMinutes) || 5;
     const startedAt = nowIso();
     stateApi.updateAppState((draft) => {
+      updateTodayPlan(draft, (plan) => { plan.oneThingAssignmentId = selectedAssignmentId; });
       draft.activeFocusSession = {
         id: stateApi.createId("focus"),
         mode: "break",
@@ -1716,11 +1740,13 @@
     const sessionsBeforeLongBreak = document.querySelector("[data-sessions-before-long-break]");
     const dailyGoal = document.querySelector("[data-daily-focus-goal]");
     const completionSound = document.querySelector("[data-completion-sound]");
+    const gentleMode = document.querySelector("[data-gentle-mode]");
     stateApi.updateAppState((state) => {
       state.settings.longBreakDuration = clampTimerMinutes(longBreak?.value, 15, 120);
       state.settings.sessionsBeforeLongBreak = clampTimerMinutes(sessionsBeforeLongBreak?.value, 4, 12);
       state.settings.dailyFocusGoalMinutes = clampTimerMinutes(dailyGoal?.value, 60, 600);
       state.settings.completionSound = Boolean(completionSound?.checked);
+      state.settings.gentleMode = Boolean(gentleMode?.checked);
       return state;
     });
   }
@@ -2011,7 +2037,7 @@
       });
     });
 
-    document.querySelectorAll("[data-long-break-minutes], [data-sessions-before-long-break], [data-daily-focus-goal], [data-completion-sound]").forEach((input) => {
+    document.querySelectorAll("[data-long-break-minutes], [data-sessions-before-long-break], [data-daily-focus-goal], [data-completion-sound], [data-gentle-mode]").forEach((input) => {
       input.addEventListener("change", saveExtendedFocusSettings);
     });
 
@@ -2222,9 +2248,29 @@
       return;
     }
 
+    const moveTomorrow = event.target.closest("[data-move-tomorrow]");
+    if (moveTomorrow) {
+      moveAssignmentsToTomorrow([moveTomorrow.dataset.moveTomorrow]);
+      return;
+    }
+
+    const moveAllTomorrow = event.target.closest("[data-move-all-tomorrow]");
+    if (moveAllTomorrow) {
+      const today = localDateKey(new Date());
+      const overdueIds = stateApi.getAppState().assignments.filter((assignment) => !assignmentIsComplete(assignment) && assignment.dueDate && assignment.dueDate < today).map((assignment) => assignment.id);
+      if (overdueIds.length && window.confirm("Move all overdue items to tomorrow?")) moveAssignmentsToTomorrow(overdueIds);
+      return;
+    }
     const energyButton = event.target.closest("[data-set-energy]");
     if (energyButton) {
       setEnergy(energyButton.dataset.setEnergy);
+      return;
+    }
+
+    const changeOneThing = event.target.closest("[data-change-one-thing]");
+    if (changeOneThing) {
+      const select = document.querySelector("[data-one-thing-select]");
+      select?.focus();
       return;
     }
 

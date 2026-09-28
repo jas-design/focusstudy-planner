@@ -575,6 +575,7 @@
     const weekDays = getWeekDays(new Date());
     const gamification = momentum ? momentum.normalizeGamification(state.gamification) : { enabled: false, showStreaks: true };
     const studentName = state.user.name || "Student";
+    document.querySelector(".today-page")?.classList.toggle("is-gentle", Boolean(state.settings.gentleMode));
     const initial = studentName.trim().charAt(0).toUpperCase() || "F";
 
     setText(".hero-panel__text h2", `${greeting}${name}.`);
@@ -601,12 +602,17 @@
     renderEnergyFit(state, todayPlan);
 
     const priorityList = document.querySelector(".priority-list");
+    const todayItems = [
+      ...topThreeAssignments,
+      ...dueToday.filter((assignment) => !topThreeIds.includes(assignment.id))
+    ];
     if (priorityList) {
-      if (!topThreeAssignments.length) {
-        priorityList.replaceChildren(emptyListItem("No priorities yet.", "Choose up to three active assignments for today."));
+      if (!todayItems.length) {
+        priorityList.replaceChildren(emptyListItem("Nothing planned for today.", "Add a priority or choose an assignment to get started."));
       } else {
-        const priorityRows = topThreeAssignments.map((assignment, index) => {
-          const id = `priority-${assignment.id}`;
+        const visibleItems = todayItems.slice(0, 3);
+        const priorityRows = visibleItems.map((assignment, index) => {
+          const id = `today-${assignment.id}`;
           const completed = assignmentIsComplete(assignment);
           const input = createElement("input", {
             id,
@@ -624,17 +630,14 @@
             input,
             label,
             createElement("div", { className: "priority-actions" }, [
-              createElement("button", { className: "button button--secondary button--compact", type: "button", "data-start-focus": assignment.id, text: "Focus" }),
-              createElement("a", { className: "button button--ghost button--compact", href: "#assignment-detail", "data-open-assignment-detail": assignment.id, text: "Open" }),
-              createElement("button", { className: "button button--ghost button--compact", type: "button", "data-remove-priority": assignment.id, text: "Remove" })
-            ]),
-            createElement("span", { className: signalClass, "aria-label": `Priority ${index + 1}` })
+              createElement("span", { className: signalClass, "aria-label": `Priority ${index + 1}` })
+            ])
           ]);
         });
-        const available = active.filter((assignment) => !topThreeIds.includes(assignment.id));
-        if (topThreeAssignments.length < 3 && available.length) {
+        const moreCount = Math.max(0, todayItems.length - visibleItems.length);
+        if (moreCount) {
           priorityRows.push(createElement("li", { className: "priority-add-row" }, [
-            createElement("button", { className: "text-link", type: "button", "data-open-modal": "priority-modal", text: "Add a priority" })
+            createElement("a", { className: "text-link", href: "#assignments", text: `+${moreCount} more in Assignments` })
           ]));
         }
         priorityList.replaceChildren(...priorityRows);
@@ -649,20 +652,11 @@
     }
 
     renderPriorityPicker(state, topThreeIds);
-
-    const taskList = document.querySelector(".today-task-panel .record-list");
-    if (taskList) {
-      if (!dueToday.length) {
-        taskList.replaceChildren(emptyState("Nothing scheduled today.", "You're all caught up for today.", true));
-      } else {
-        taskList.replaceChildren(...dueToday.map((assignment) => todayAssignmentRecord(state, assignment)));
-      }
-    }
-
     const overduePanel = document.querySelector(".overdue-panel");
     const overdueList = document.querySelector("[data-overdue-list]");
     if (overduePanel && overdueList) {
       overduePanel.hidden = overdue.length === 0;
+      setText("#overdue-heading", `${overdue.length} ${overdue.length === 1 ? "item" : "items"} slipped. No stress, pick a new day.`);
       if (overdue.length) {
         overdueList.replaceChildren(...overdue.map((assignment) => todayAssignmentRecord(state, assignment)));
       }
@@ -687,11 +681,11 @@
       heroFocusCta.querySelector("span").textContent = state.activeFocusSession ? "Return to Focus" : "Start Focus";
     }
 
-    const upcomingList = document.querySelector('[aria-labelledby="upcoming-heading"] .record-list');
-    if (upcomingList) {
-      if (!upcoming.length) {
-        upcomingList.replaceChildren(emptyState("No upcoming assignments.", "New assignments will appear here when you add due dates.", true));
-      } else {
+    const upcomingPanel = document.querySelector('[aria-labelledby="upcoming-heading"]');
+    const upcomingList = upcomingPanel?.querySelector(".record-list");
+    if (upcomingPanel && upcomingList) {
+      upcomingPanel.hidden = !upcoming.length;
+      if (upcoming.length) {
         const visibleUpcoming = upcoming.slice(0, 5).map((assignment) => assignmentRecord(state, assignment, "upcoming"));
         if (upcoming.length > 5) {
           visibleUpcoming.push(createElement("a", { className: "text-link today-more-link", href: "#assignments", text: "View all assignments" }));
@@ -700,13 +694,16 @@
       }
     }
 
-    const countdownList = document.querySelector(".countdown-list");
-    if (countdownList) {
-      const exams = upcomingExamAssignments(state).slice(0, 3);
+    const examPanel = document.querySelector('[aria-labelledby="exam-preview-heading"]');
+    const countdownList = examPanel?.querySelector(".countdown-list");
+    if (examPanel && countdownList) {
+      const exams = upcomingExamAssignments(state).filter((assignment) => {
+        const days = daysUntil(assignment.dueDate);
+        return days !== null && days <= 7;
+      }).slice(0, 3);
+      examPanel.hidden = !exams.length;
 
-      if (!exams.length) {
-        countdownList.replaceChildren(emptyState("No upcoming exams.", "Exam countdowns appear here when you add exam dates.", true));
-      } else {
+      if (exams.length) {
         countdownList.replaceChildren(...exams.map((assignment) => {
           const label = countdownLabel(assignment.dueDate);
           const labelParts = label.split(" ");
@@ -765,6 +762,21 @@
     }
   }
 
+  function suggestOneThingAssignment(assignments, energy) {
+    return assignments.slice().sort((a, b) => {
+      if (energy === "low") {
+        const effort = (Number(a.estimatedMinutes) || Number.POSITIVE_INFINITY) - (Number(b.estimatedMinutes) || Number.POSITIVE_INFINITY);
+        if (effort !== 0) return effort;
+      }
+      const overdueDifference = Number(isPast(a.dueDate)) - Number(isPast(b.dueDate));
+      if (overdueDifference !== 0) return -overdueDifference;
+      const todayDifference = Number(isToday(a.dueDate)) - Number(isToday(b.dueDate));
+      if (todayDifference !== 0) return -todayDifference;
+      const dueDifference = dueSortValue(a) - dueSortValue(b);
+      if (dueDifference !== 0) return dueDifference;
+      return (Number(a.estimatedMinutes) || Number.POSITIVE_INFINITY) - (Number(b.estimatedMinutes) || Number.POSITIVE_INFINITY);
+    })[0] || null;
+  }
   function renderOneThing(state, plan) {
     const container = document.querySelector("[data-one-thing]");
     if (!container) return;
@@ -813,7 +825,7 @@
     }
 
     const active = activeAssignments(state).sort(sortAssignments);
-    const selected = active.find((assignment) => assignment.id === plan.oneThingAssignmentId) || null;
+    const selected = active.find((assignment) => assignment.id === plan.oneThingAssignmentId) || suggestOneThingAssignment(active, plan.energy);
 
     if (!active.length) {
       container.replaceChildren(
@@ -888,8 +900,9 @@
             ])
           ]),
           createElement("div", { className: "button-row" }, [
-            selected ? createElement("button", { className: "button button--primary", type: "button", "data-start-focus": selected.id, text: "Focus Now" }) : document.createTextNode(""),
-            selected ? createElement("button", { className: "button button--ghost", type: "button", "data-clear-one-thing": "", text: "Clear" }) : document.createTextNode("")
+            selected ? createElement("button", { className: "button button--primary", type: "button", "data-start-focus": selected.id, text: "Start focus" }) : document.createTextNode(""),
+            selected ? createElement("button", { className: "button button--ghost", type: "button", "data-change-one-thing": "", text: "Change task" }) : document.createTextNode(""),
+            selected ? createElement("a", { className: "button button--ghost", href: "#assignment-detail", "data-open-assignment-detail": selected.id, text: "Break into steps" }) : document.createTextNode("")
           ])
         ])
       ])
@@ -931,16 +944,20 @@
       }));
     }
 
+    const weeklyPanel = document.querySelector(".weekly-focus-panel");
+    if (weeklyPanel) weeklyPanel.hidden = totalSeconds === 0;
     if (summary) {
-      summary.textContent = totalSeconds
-        ? `${formatFocusDuration(totalSeconds)} focused this week.`
-        : "Finish a focus session to start filling in this week.";
+      summary.textContent = totalSeconds ? `${formatFocusDuration(totalSeconds)} focused this week.` : "";
     }
+  }
+
+  function pluralize(count, singular, plural) {
+    return count === 1 ? singular : plural;
   }
 
   function todaySummary(overdue, dueToday, topThreeAssignments) {
     if (overdue.length) {
-      return `You have ${overdue.length} overdue ${overdue.length === 1 ? "assignment" : "assignments"} that need attention.`;
+      return `You have ${overdue.length} overdue ${overdue.length === 1 ? "assignment" : "assignments"} that ${pluralize(overdue.length, "needs", "need")} attention.`;
     }
     if (dueToday.length) {
       return `You have ${dueToday.length} ${dueToday.length === 1 ? "thing" : "things"} due today.`;
@@ -1236,13 +1253,17 @@
 
   function todayAssignmentRecord(state, assignment) {
     const completed = assignmentIsComplete(assignment);
+    const actions = [
+      createElement("button", { className: "button button--secondary button--compact", type: "button", "data-start-focus": assignment.id, text: "Focus" }),
+      createElement("button", { className: completed ? "button button--ghost button--compact" : "button button--secondary button--compact", type: "button", "data-toggle-assignment-complete": assignment.id, text: completed ? "Reopen" : "Complete" })
+    ];
+    if (!completed && isPast(assignment.dueDate)) {
+      actions.unshift(createElement("button", { className: "button button--ghost button--compact", type: "button", "data-move-tomorrow": assignment.id, text: "Move to tomorrow" }));
+    }
     return createTaskRow(state, assignment, {
       className: `today-record${completed ? " today-record--complete" : ""}`,
       checkboxId: `today-task-${assignment.id}`,
-      actions: [
-        createElement("button", { className: "button button--secondary button--compact", type: "button", "data-start-focus": assignment.id, text: "Focus" }),
-        createElement("button", { className: completed ? "button button--ghost button--compact" : "button button--secondary button--compact", type: "button", "data-toggle-assignment-complete": assignment.id, text: completed ? "Reopen" : "Complete" })
-      ]
+      actions
     });
   }
 
@@ -2380,6 +2401,7 @@
     const sessionsBeforeLongBreak = document.querySelector("[data-sessions-before-long-break]");
     const dailyGoal = document.querySelector("[data-daily-focus-goal]");
     const completionSound = document.querySelector("[data-completion-sound]");
+    const gentleMode = document.querySelector("[data-gentle-mode]");
     const customTimer = document.querySelector("[data-custom-timer]");
     const gamification = momentum ? momentum.normalizeGamification(state.gamification) : { enabled: true, showStreaks: true, weeklyGoalMode: "recommended", customWeeklyGoal: 90 };
     const momentumEnabled = document.querySelector("[data-momentum-enabled]");
@@ -2414,6 +2436,7 @@
     if (sessionsBeforeLongBreak) sessionsBeforeLongBreak.value = String(state.settings.sessionsBeforeLongBreak || 4);
     if (dailyGoal) dailyGoal.value = String(state.settings.dailyFocusGoalMinutes || 60);
     if (completionSound) completionSound.checked = Boolean(state.settings.completionSound);
+    if (gentleMode) gentleMode.checked = Boolean(state.settings.gentleMode);
     if (momentumEnabled) momentumEnabled.checked = gamification.enabled;
     if (momentumStreaks) momentumStreaks.checked = gamification.showStreaks;
     if (momentumGoalMode) momentumGoalMode.value = gamification.weeklyGoalMode;

@@ -79,10 +79,6 @@
 
         <div class="top-utility-bar" aria-label="Planner utilities">
           <span class="top-utility-bar__spacer" aria-hidden="true"></span>
-          <button class="utility-pill" type="button" data-focus-energy>
-            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8.5 10h.01M15.5 10h.01M8.5 14.2c1.8 1.6 5.2 1.6 7 0"/></svg>
-            <span>How are you feeling?</span>
-          </button>
           <span class="utility-avatar" aria-hidden="true">F</span>
         </div>
 
@@ -160,38 +156,22 @@
                 <div class="section-heading">
                   <div>
                     <p class="eyebrow">Top 3</p>
-                    <h2 id="priority-heading">Priorities</h2>
+                    <h2 id="priority-heading">Today</h2>
                   </div>
                   <button class="button button--secondary" type="button" data-open-modal="priority-modal">Add Priority</button>
                 </div>
-                <ol class="priority-list priority-list--check">
+                <ol class="priority-list priority-list--check" data-today-list>
                   <li class="empty-list-item">
                     <strong>No priorities yet.</strong>
                     <small>Choose up to three important tasks when you are ready.</small>
                   </li>
                 </ol>
               </section>
-
-              <section class="planner-section today-task-panel" aria-labelledby="tasks-heading">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Scheduled</p>
-                    <h2 id="tasks-heading">Today's tasks</h2>
-                  </div>
-                </div>
-                <div class="record-list">
-                  <div class="empty-state empty-state--compact">
-                    <strong>Nothing scheduled today.</strong>
-                    <p>Use Today to choose a small next action when work appears.</p>
-                  </div>
-                </div>
-              </section>
-
               <section class="planner-section planner-section--warning overdue-panel" aria-labelledby="overdue-heading" hidden>
                 <div class="section-heading">
                   <div>
-                    <p class="eyebrow">Needs attention</p>
-                    <h2 id="overdue-heading">Overdue</h2>
+                    <p class="eyebrow">A gentle reset</p>
+                    <h2 id="overdue-heading">Pick a new day</h2><button class="button button--ghost button--compact" type="button" data-move-all-tomorrow>Move all to tomorrow</button>
                   </div>
                 </div>
                 <div class="record-list" data-overdue-list></div>
@@ -200,7 +180,7 @@
               <section class="planner-section planner-section--quiet weekly-focus-panel" aria-labelledby="today-weekly-focus-heading">
                 <div class="section-heading">
                   <div>
-                    <p class="eyebrow">Weekly focus</p>
+                    <p class="eyebrow">Weekly rhythm</p>
                     <h2 id="today-weekly-focus-heading">This week's rhythm</h2>
                   </div>
                 </div>
@@ -628,6 +608,7 @@
                       <label for="daily-focus-goal">Daily focus goal<input id="daily-focus-goal" type="number" min="1" max="600" step="5" value="60" data-daily-focus-goal></label>
                     </div>
                     <label><input type="checkbox" data-completion-sound> Gentle completion sound</label>
+                    <label><input type="checkbox" data-gentle-mode> Gentle mode on Today</label>
                     <p class="helper-text">Browser notifications are not included in this local-file version because permission behavior is unreliable when opened from a downloaded HTML file.</p>
                   </fieldset>
                   <fieldset class="segmented-field">

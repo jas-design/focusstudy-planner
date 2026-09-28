@@ -680,12 +680,12 @@
 }
 
 
-.today-page .week-strip span:nth-child(2n) i {
+.today-page .week-strip span:not(.week-strip__day--empty):nth-child(2n) i {
   background: var(--color-butter);
 }
 
 
-.today-page .week-strip span:nth-child(3n) i {
+.today-page .week-strip span:not(.week-strip__day--empty):nth-child(3n) i {
   background: var(--color-peach);
 }
 
@@ -841,5 +841,26 @@
   .today-page .weekly-focus-panel {
     min-height: auto;
     padding: var(--space-5);
+  }
+}
+
+.today-page.is-gentle .today-summary,
+.today-page.is-gentle .energy-panel,
+.today-page.is-gentle .priority-panel,
+.today-page.is-gentle .energy-fit-panel,
+.today-page.is-gentle .weekly-focus-panel,
+.today-page.is-gentle [aria-labelledby="upcoming-heading"],
+.today-page.is-gentle [aria-labelledby="exam-preview-heading"],
+.today-page.is-gentle .overdue-panel {
+  display: none;
+}
+
+.today-page.is-gentle .today-grid {
+  grid-template-areas: "one capture";
+}
+
+@media (max-width: $bp-mobile) {
+  .today-page.is-gentle .today-grid {
+    grid-template-areas: "one" "capture";
   }
 }

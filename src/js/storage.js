@@ -141,6 +141,7 @@
         sessionsBeforeLongBreak: 4,
         dailyFocusGoalMinutes: 60,
         completionSound: false,
+      gentleMode: false,
         preferredStartSection: "today",
         dateDisplay: "weekdayMonthDay"
       }
@@ -161,6 +162,7 @@
       sessionsBeforeLongBreak: numberValue(source.sessionsBeforeLongBreak, defaults.sessionsBeforeLongBreak),
       dailyFocusGoalMinutes: numberValue(source.dailyFocusGoalMinutes, defaults.dailyFocusGoalMinutes),
       completionSound: boolValue(source.completionSound),
+      gentleMode: boolValue(source.gentleMode),
       preferredStartSection: stringValue(source.preferredStartSection, defaults.preferredStartSection),
       dateDisplay: stringValue(source.dateDisplay, defaults.dateDisplay)
     };
