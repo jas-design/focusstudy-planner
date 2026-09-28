@@ -56,7 +56,7 @@
   }
 
   function validateKnownSections(data) {
-    const arrayKeys = ["courses", "assignments", "priorities", "focusSessions", "exams", "recentWins", "notes", "habits"];
+    const arrayKeys = ["courses", "assignments", "studyBlocks", "priorities", "focusSessions", "exams", "recentWins", "notes", "habits"];
     const optionalArrayKeys = ["brainDump", "brainDumpItems"];
     const invalidArrayKey = arrayKeys.find((key) => Object.prototype.hasOwnProperty.call(data, key) && !Array.isArray(data[key]));
     const invalidBrainDump = optionalArrayKeys.some((key) => Object.prototype.hasOwnProperty.call(data, key) && !Array.isArray(data[key]));
@@ -82,7 +82,7 @@
       };
     }
 
-    const knownKeys = ["version", "appVersion", "createdAt", "updatedAt", "user", "settings", "courses", "assignments", "brainDump", "brainDumpItems", "priorities", "dailyPlan", "activeFocusSession", "focusSessions", "exams", "recentWins", "notes", "habits", "gamification"];
+    const knownKeys = ["version", "appVersion", "createdAt", "updatedAt", "user", "settings", "courses", "assignments", "studyBlocks", "brainDump", "brainDumpItems", "priorities", "dailyPlan", "activeFocusSession", "focusSessions", "exams", "recentWins", "notes", "habits", "gamification"];
     const hasKnownData = knownKeys.some((key) => Object.prototype.hasOwnProperty.call(data, key));
     if (!hasKnownData) {
       return {

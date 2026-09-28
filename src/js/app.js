@@ -1288,9 +1288,10 @@
     return renderer.activeFocusRemainingSeconds(session);
   }
 
-  function startFocusSession(assignmentId, trigger) {
+  function startFocusSession(assignmentId, trigger, subtaskId) {
     const state = stateApi.getAppState();
     const selectedAssignmentId = assignmentId || renderer.getSelectedFocusAssignmentId();
+    if (selectedAssignmentId) renderer.setSelectedFocusAssignmentId(selectedAssignmentId);
     if (state.activeFocusSession) {
       window.location.hash = "#focus";
       announce("You already have a focus session running.");
@@ -1307,7 +1308,8 @@
     const subtaskSelect = document.querySelector(`[data-focus-subtask-for="${CSS.escape(selectedAssignmentId)}"]`);
     const goalInput = document.querySelector(`[data-session-goal-for="${CSS.escape(selectedAssignmentId)}"]`);
     const firstIncomplete = (assignment.subtasks || []).find((subtask) => !subtask.completed);
-    const subtaskId = subtaskSelect ? subtaskSelect.value || null : firstIncomplete ? firstIncomplete.id : null;
+    const selectedSubtaskId = subtaskId && findSubtask(assignment, subtaskId) ? subtaskId : null;
+    const resolvedSubtaskId = selectedSubtaskId || (subtaskSelect ? subtaskSelect.value || null : firstIncomplete ? firstIncomplete.id : null);
     const sessionGoal = goalInput ? goalInput.value.trim().slice(0, 120) : "";
     const plannedDurationMinutes = Number(state.settings.focusDuration) || 25;
     const breakDurationMinutes = Number(state.settings.breakDuration) || 5;
@@ -1321,7 +1323,7 @@
         mode: "focus",
         status: "running",
         assignmentId: selectedAssignmentId,
-        subtaskId,
+        subtaskId: resolvedSubtaskId,
         plannedDurationMinutes,
         breakDurationMinutes,
         startedAt,
@@ -1664,6 +1666,75 @@
     renderCurrentState();
   }
 
+
+  function planAssignment(assignmentId) {
+    const state = stateApi.getAppState();
+    const assignment = findAssignment(state, assignmentId);
+    if (!assignment || assignmentIsComplete(assignment)) {
+      announce("Choose an active assignment before planning study time.");
+      return;
+    }
+    renderer.setSchedulePlanningAssignmentId(assignment.id);
+    if (assignment.courseId) renderer.setScheduleFilter("course", assignment.courseId);
+    renderer.setScheduleFilter("type", "all");
+    window.location.hash = "#schedule";
+    renderCurrentState();
+    announce("Plan study time for this assignment.");
+  }
+
+  function viewCourseAssignments(courseId) {
+    renderer.setAssignmentFilter("course", courseId || "all");
+    renderer.setAssignmentFilter("status", "all");
+    window.location.hash = "#assignments";
+    renderCurrentState();
+  }
+
+  function viewCourseSchedule(courseId) {
+    renderer.setScheduleFilter("course", courseId || "all");
+    renderer.setScheduleFilter("type", "all");
+    window.location.hash = "#schedule";
+    renderCurrentState();
+  }
+
+  function saveStudyBlock(event) {
+    const form = event.target.closest("[data-study-block-form]");
+    if (!form) return;
+    event.preventDefault();
+    const assignmentId = form.dataset.studyBlockForm;
+    const dateInput = form.querySelector("[data-study-block-date]");
+    const startInput = form.querySelector("[data-study-block-start]");
+    const durationInput = form.querySelector("[data-study-block-duration]");
+    const stepInput = form.querySelector("[data-study-block-step]");
+    const alert = form.querySelector("[data-study-block-error]");
+    const date = dateInput ? dateInput.value : "";
+    const duration = Math.round(Number(durationInput && durationInput.value));
+    const assignment = findAssignment(stateApi.getAppState(), assignmentId);
+    if (!assignment || assignmentIsComplete(assignment) || !validDateKey(date) || !Number.isFinite(duration) || duration <= 0) {
+      if (alert) {
+        alert.textContent = "Choose a date and duration before adding study time.";
+        alert.hidden = false;
+      }
+      (dateInput || durationInput || form).focus?.();
+      return;
+    }
+    const timestamp = nowIso();
+    stateApi.updateAppState((draft) => {
+      draft.studyBlocks = Array.isArray(draft.studyBlocks) ? draft.studyBlocks : [];
+      draft.studyBlocks.push({
+        id: stateApi.createId("study"),
+        assignmentId,
+        stepId: stepInput && stepInput.value ? stepInput.value : null,
+        date,
+        startTime: startInput ? startInput.value || "" : "",
+        durationMinutes: duration,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      });
+      return draft;
+    });
+    renderer.setScheduleFilter("type", "all");
+    announce("Study block added.");
+  }
   function focusBrainDumpField() {
     const brainInput = document.querySelector("#brain-note");
     brainInput?.focus({ preventScroll: true });
@@ -2225,10 +2296,38 @@
     const startFocus = event.target.closest("[data-start-focus]");
     if (startFocus) {
       event.preventDefault();
-      startFocusSession(startFocus.dataset.startFocus, startFocus);
+      startFocusSession(startFocus.dataset.startFocus, startFocus, startFocus.dataset.startFocusStep || "");
       return;
     }
 
+
+    const planButton = event.target.closest("[data-plan-assignment]");
+    if (planButton) {
+      event.preventDefault();
+      planAssignment(planButton.dataset.planAssignment);
+      return;
+    }
+
+    const viewAssignmentsButton = event.target.closest("[data-view-course-assignments]");
+    if (viewAssignmentsButton) {
+      event.preventDefault();
+      viewCourseAssignments(viewAssignmentsButton.dataset.viewCourseAssignments);
+      return;
+    }
+
+    const viewScheduleButton = event.target.closest("[data-view-course-schedule]");
+    if (viewScheduleButton) {
+      event.preventDefault();
+      viewCourseSchedule(viewScheduleButton.dataset.viewCourseSchedule);
+      return;
+    }
+
+    const cancelSchedulePlan = event.target.closest("[data-cancel-schedule-plan]");
+    if (cancelSchedulePlan) {
+      renderer.setSchedulePlanningAssignmentId("");
+      renderCurrentState();
+      return;
+    }
     const focusEnergy = event.target.closest("[data-focus-energy]");
     if (focusEnergy) {
       const moveToEnergyPanel = () => {
@@ -2459,6 +2558,7 @@
 
   document.addEventListener("submit", saveSubtaskEdit);
   document.addEventListener("submit", saveBrainDumpEdit);
+  document.addEventListener("submit", saveStudyBlock);
 
   document.addEventListener("submit", (event) => {
     const distractionForm = event.target.closest("[data-distraction-form]");

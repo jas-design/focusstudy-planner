@@ -110,6 +110,7 @@
       },
       courses: [],
       assignments: [],
+      studyBlocks: [],
       brainDump: [],
       priorities: [],
       dailyPlan: {
@@ -201,6 +202,24 @@
     };
   }
 
+  function sanitizeStudyBlock(block) {
+    if (!isPlainObject(block)) return null;
+    const timestamp = nowIso();
+    const assignmentId = nullableString(block.assignmentId);
+    const date = dateOnly(block.date);
+    if (!assignmentId || !date) return null;
+
+    return {
+      id: stringValue(block.id, createId("study")),
+      assignmentId,
+      stepId: nullableString(block.stepId || block.subtaskId),
+      date,
+      startTime: timeOnly(block.startTime),
+      durationMinutes: Math.max(1, Math.round(nonNegativeNumberValue(block.durationMinutes, 25))),
+      createdAt: timestampValue(block.createdAt, timestamp),
+      updatedAt: timestampValue(block.updatedAt, timestamp)
+    };
+  }
   function sanitizeAssessment(assessment) {
     if (!isPlainObject(assessment)) return null;
     const timestamp = nowIso();
@@ -506,6 +525,7 @@
 
     migrated.version = CURRENT_VERSION;
     migrated.brainDump = Array.isArray(data.brainDump) ? data.brainDump : data.brainDumpItems;
+    migrated.studyBlocks = Array.isArray(data.studyBlocks) ? data.studyBlocks : [];
     migrated.settings = sanitizeSettings(data.settings);
     migrated.gamification = sanitizeGamification(data.gamification);
 
@@ -526,7 +546,7 @@
     const defaults = getDefaultAppData();
     const timestamp = nowIso();
     const createdAt = timestampValue(migrated.createdAt, defaults.createdAt);
-    const requiredRootKeys = ["version", "user", "courses", "assignments", "brainDump", "priorities", "dailyPlan", "activeFocusSession", "focusSessions", "exams", "settings", "recentWins", "notes", "habits", "gamification"];
+    const requiredRootKeys = ["version", "user", "courses", "assignments", "studyBlocks", "brainDump", "priorities", "dailyPlan", "activeFocusSession", "focusSessions", "exams", "settings", "recentWins", "notes", "habits", "gamification"];
     const missingRootData = requiredRootKeys.some((key) => !Object.prototype.hasOwnProperty.call(data, key));
     const legacySettings = isPlainObject(data.settings) && (
       Object.prototype.hasOwnProperty.call(data.settings, "defaultFocusMinutes") ||
@@ -544,6 +564,7 @@
       },
       courses: Array.isArray(migrated.courses) ? migrated.courses.map(sanitizeCourse).filter(Boolean) : [],
       assignments: Array.isArray(migrated.assignments) ? migrated.assignments.map(sanitizeAssignment).filter(Boolean) : [],
+      studyBlocks: Array.isArray(migrated.studyBlocks) ? migrated.studyBlocks.map(sanitizeStudyBlock).filter(Boolean) : [],
       brainDump: Array.isArray(migrated.brainDump) ? migrated.brainDump.map(sanitizeBrainDumpItem).filter(Boolean) : [],
       priorities: Array.isArray(migrated.priorities) ? migrated.priorities.map(sanitizePriority).filter(Boolean) : [],
       dailyPlan: sanitizeDailyPlan(migrated.dailyPlan),

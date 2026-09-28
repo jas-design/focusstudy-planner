@@ -19,6 +19,7 @@
   const scheduleViews = ["grid", "list"];
   let selectedAssignmentId = "";
   let selectedFocusAssignmentId = "";
+  let selectedScheduleAssignmentId = "";
   let selectedCourseId = "";
   let editingSubtaskId = "";
   let editingBrainDumpId = "";
@@ -1322,10 +1323,10 @@
       createElement("div", { className: "assignment-card__footer" }, [
         renderStatus(assignment),
         createElement("div", { className: "assignment-card__actions" }, [
-          createElement("button", { className: "button button--ghost button--compact", type: "button", "data-toggle-assignment-complete": assignment.id, text: completed ? "Reopen" : "Complete" }),
           createElement("a", { className: "button button--secondary button--compact", href: "#assignment-detail", "data-open-assignment-detail": assignment.id, text: "Open" }),
+          createElement("button", { className: "button button--secondary button--compact", type: "button", "data-plan-assignment": assignment.id, disabled: completed, text: "Plan" }),
           createElement("button", { className: "button button--ghost button--compact", type: "button", "data-start-focus": assignment.id, disabled: completed, text: "Focus" }),
-          createElement("button", { className: "button button--ghost button--compact", type: "button", "data-edit-assignment": assignment.id, text: "Edit" })
+          createElement("button", { className: "button button--ghost button--compact", type: "button", "data-toggle-assignment-complete": assignment.id, text: completed ? "Reopen" : "Complete" })
         ])
       ])
     ]);
@@ -1376,6 +1377,18 @@
     ]);
   }
 
+
+  function plannedStudyMinutes(state, assignmentId) {
+    return (state.studyBlocks || []).reduce((sum, block) => {
+      return block.assignmentId === assignmentId ? sum + (Number(block.durationMinutes) || 0) : sum;
+    }, 0);
+  }
+
+  function remainingStudyMinutes(state, assignment) {
+    const estimated = Number(assignment && assignment.estimatedMinutes) || 0;
+    if (!estimated) return null;
+    return Math.max(0, estimated - plannedStudyMinutes(state, assignment.id));
+  }
   function formatTimeRange(startTime, endTime) {
     if (startTime && endTime) return `${startTime}-${endTime}`;
     if (startTime) return startTime;
@@ -1412,6 +1425,28 @@
       });
     });
 
+
+    (state.studyBlocks || []).forEach((block) => {
+      if (!block.date || !weekKeys.has(block.date)) return;
+      const assignment = state.assignments.find((item) => item.id === block.assignmentId);
+      if (!assignment) return;
+      const course = findCourse(state, assignment.courseId);
+      const step = (assignment.subtasks || []).find((item) => item.id === block.stepId);
+      events.push({
+        id: `study-${block.id}`,
+        type: "studyBlock",
+        date: block.date,
+        time: block.startTime || "Study",
+        sortTime: block.startTime || "99:97",
+        title: assignment.title || "Untitled assignment",
+        detail: `${Number(block.durationMinutes) || 25} min study block${step ? ` - ${step.title}` : ""}`,
+        location: course ? (course.code || course.name) : "No course",
+        courseId: assignment.courseId || "",
+        assignmentId: assignment.id,
+        stepId: block.stepId || "",
+        tone: courseTone(state, assignment.courseId)
+      });
+    });
     (state.assignments || []).forEach((assignment) => {
       if (!assignment.dueDate || !weekKeys.has(assignment.dueDate)) return;
       const course = findCourse(state, assignment.courseId);
@@ -1425,7 +1460,8 @@
         detail: assignment.type === "exam" ? "Exam" : "Deadline",
         location: course ? (course.code || course.name) : "No course",
         courseId: assignment.courseId || "",
-        tone: courseTone(state, assignment.courseId)
+        tone: courseTone(state, assignment.courseId),
+        assignmentId: assignment.id
       });
     });
 
@@ -1439,16 +1475,72 @@
   }
 
   function scheduleEventCard(event) {
-    const typeLabel = event.type === "class" ? "Class" : event.type === "exam" ? "Exam" : "Deadline";
+    const typeLabel = event.type === "class" ? "Class" : event.type === "exam" ? "Exam" : event.type === "studyBlock" ? "Study Block" : "Deadline";
+    const actions = [];
+    if (event.assignmentId && (event.type === "deadline" || event.type === "exam")) {
+      actions.push(createElement("a", { className: "button button--ghost button--compact", href: "#assignment-detail", "data-open-assignment-detail": event.assignmentId, text: "Open" }));
+    }
+    if (event.assignmentId && event.type === "studyBlock") {
+      const focusAttrs = { className: "button button--secondary button--compact", type: "button", "data-start-focus": event.assignmentId, text: "Start Focus" };
+      if (event.stepId) focusAttrs["data-start-focus-step"] = event.stepId;
+      actions.push(createElement("button", focusAttrs));
+    }
     return createElement("article", { className: `schedule-event schedule-event--${event.tone}` }, [
       createElement("span", { className: "schedule-event__type", text: typeLabel }),
       createElement("strong", { text: event.title }),
       createElement("span", { text: event.time }),
       event.detail ? createElement("small", { text: event.detail }) : document.createTextNode(""),
-      event.location ? createElement("small", { text: event.location }) : document.createTextNode("")
+      event.location ? createElement("small", { text: event.location }) : document.createTextNode(""),
+      actions.length ? createElement("div", { className: "schedule-event__actions" }, actions) : document.createTextNode("")
     ]);
   }
 
+  function renderSchedulePlanning(state, weekDays) {
+    const panel = document.querySelector("[data-schedule-planning]");
+    if (!panel) return;
+    const assignment = selectedScheduleAssignmentId ? state.assignments.find((item) => item.id === selectedScheduleAssignmentId && !assignmentIsComplete(item)) : null;
+    if (!assignment) {
+      selectedScheduleAssignmentId = "";
+      panel.hidden = true;
+      panel.replaceChildren();
+      return;
+    }
+
+    const remaining = remainingStudyMinutes(state, assignment);
+    const estimated = Number(assignment.estimatedMinutes) || 0;
+    const stepOptions = (assignment.subtasks || []).filter((step) => !step.completed);
+    const defaultDate = weekDays.some((day) => day.key === currentTodayKey()) ? currentTodayKey() : weekDays[0].key;
+    panel.hidden = false;
+    panel.replaceChildren(
+      createElement("div", { className: "section-heading" }, [
+        createElement("div", {}, [
+          createElement("p", { className: "eyebrow", text: "Plan study time" }),
+          createElement("h2", { id: "schedule-planning-heading", text: assignment.title || "Untitled assignment" }),
+          createElement("p", { text: estimated ? `${estimated} min estimated${remaining !== null ? ` - ${remaining} min unplanned` : ""}` : "Choose a block that feels realistic." })
+        ]),
+        createElement("button", { className: "button button--ghost button--compact", type: "button", "data-cancel-schedule-plan": "", text: "Save for Later" })
+      ]),
+      createElement("form", { className: "stacked-form", novalidate: "", "data-study-block-form": assignment.id }, [
+        createElement("p", { className: "form-alert", role: "alert", hidden: true, "data-study-block-error": "" }),
+        createElement("div", { className: "field-grid" }, [
+          createElement("label", { for: "study-block-date" }, [document.createTextNode("Date"), createElement("input", { id: "study-block-date", type: "date", value: defaultDate, "data-study-block-date": "" })]),
+          createElement("label", { for: "study-block-start" }, [document.createTextNode("Start time"), createElement("input", { id: "study-block-start", type: "time", value: "", "data-study-block-start": "" })]),
+          createElement("label", { for: "study-block-duration" }, [document.createTextNode("Duration"), createElement("select", { id: "study-block-duration", "data-study-block-duration": "" }, [
+            createElement("option", { value: "25", text: "25 min" }),
+            createElement("option", { value: "45", text: "45 min" }),
+            createElement("option", { value: "60", text: "60 min" })
+          ])]),
+          createElement("label", { for: "study-block-step" }, [document.createTextNode("Step"), createElement("select", { id: "study-block-step", "data-study-block-step": "" }, [
+            createElement("option", { value: "", text: "Assignment overall" }),
+            ...stepOptions.map((step) => createElement("option", { value: step.id, text: step.title }))
+          ])])
+        ]),
+        createElement("div", { className: "button-row" }, [
+          createElement("button", { className: "button button--primary", type: "submit", text: "Add Study Block" })
+        ])
+      ])
+    );
+  }
   function renderSchedule(state) {
     const weekDays = getScheduleWeekDays(new Date());
     const events = scheduleEvents(state, weekDays);
@@ -1462,6 +1554,8 @@
     const courses = sortedCourses(state);
     const prefersListView = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
     const effectiveScheduleView = prefersListView ? "list" : scheduleView;
+
+    renderSchedulePlanning(state, weekDays);
 
     if (range) {
       range.textContent = `${formatShortDate(weekDays[0].key)} - ${formatShortDate(weekDays[weekDays.length - 1].key)}`;
@@ -1515,13 +1609,7 @@
       list.replaceChildren(...populatedDays.map(({ day, events: dayEvents }) => createElement("section", { className: "schedule-list-day" }, [
         createElement("h3", { text: day.label }),
         ...(dayEvents.length
-          ? dayEvents.map((event) => createElement("div", { className: "schedule-list-row" }, [
-            createElement("span", { text: event.time }),
-            createElement("div", {}, [
-              createElement("strong", { text: event.title }),
-              createElement("small", { text: [event.detail, event.location].filter(Boolean).join(" - ") || "No details" })
-            ])
-          ]))
+          ? dayEvents.map(scheduleEventCard)
           : [emptyState("Nothing scheduled.", "No classes or deadlines for this day.", true)])
       ])));
     }
@@ -1647,7 +1735,8 @@
         ]),
         createElement("div", { className: "detail-actions" }, [
           createElement("a", { className: "button button--primary", href: "#focus", "data-start-focus": assignment.id, text: "Start Focus Session" }),
-          createElement("button", { className: "button button--secondary", type: "button", "data-edit-assignment": assignment.id, text: "Edit" }),
+          createElement("button", { className: "button button--secondary", type: "button", "data-plan-assignment": assignment.id, text: "Plan" }),
+          createElement("button", { className: "button button--ghost", type: "button", "data-edit-assignment": assignment.id, text: "Edit" }),
           createElement("button", { className: "button button--ghost", type: "button", "data-toggle-assignment-complete": assignment.id, text: completed ? "Reopen" : "Complete" }),
           createElement("button", { className: "button button--ghost", type: "button", "data-delete-assignment": assignment.id, text: "Delete" })
         ])
@@ -1712,6 +1801,7 @@
       createElement("input", { id: inputId, type: "checkbox", checked: subtask.completed, "data-toggle-subtask": assignment.id, "data-subtask-id": subtask.id }),
       createElement("label", { className: "step-title", for: inputId, text: subtask.title }),
       createElement("div", { className: "step-row-actions" }, [
+        createElement("button", { className: "button button--secondary button--compact", type: "button", "data-start-focus": assignment.id, "data-start-focus-step": subtask.id, text: "Focus" }),
         createElement("button", { className: "button button--ghost button--compact", type: "button", "data-edit-subtask": assignment.id, "data-subtask-id": subtask.id, text: "Edit" }),
         createElement("button", { className: "button button--ghost button--compact", type: "button", "data-delete-subtask": assignment.id, "data-subtask-id": subtask.id, text: "Delete" })
       ])
@@ -1814,7 +1904,9 @@
           createElement("h2", { text: course.name })
         ]),
         createElement("div", { className: "detail-actions" }, [
-          createElement("button", { className: "button button--secondary", type: "button", "data-edit-course": course.id, text: "Edit" }),
+          createElement("button", { className: "button button--secondary", type: "button", "data-view-course-assignments": course.id, text: "View Assignments" }),
+          createElement("button", { className: "button button--secondary", type: "button", "data-view-course-schedule": course.id, text: "View Schedule" }),
+          createElement("button", { className: "button button--ghost", type: "button", "data-edit-course": course.id, text: "Edit" }),
           createElement("button", { className: "button button--danger", type: "button", "data-delete-course": course.id, text: "Delete" })
         ])
       );
@@ -2482,6 +2574,14 @@
     return selectedFocusAssignmentId;
   }
 
+  function setSchedulePlanningAssignmentId(id) {
+    selectedScheduleAssignmentId = id || "";
+  }
+
+  function getSchedulePlanningAssignmentId() {
+    return selectedScheduleAssignmentId;
+  }
+
   function setSelectedCourseId(id) {
     selectedCourseId = id || "";
   }
@@ -2559,6 +2659,8 @@
     getSelectedAssignmentId,
     setSelectedFocusAssignmentId,
     getSelectedFocusAssignmentId,
+    setSchedulePlanningAssignmentId,
+    getSchedulePlanningAssignmentId,
     setSelectedCourseId,
     getSelectedCourseId,
     setEditingSubtaskId,
