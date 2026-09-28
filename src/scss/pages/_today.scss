@@ -741,3 +741,105 @@
 .today-page .planner-section--warning {
   background: color-mix(in srgb, var(--color-coral-soft) 58%, var(--color-warm-surface));
 }
+/* Today composition: a calm welcome, one clear focus area, and a compact support rail. */
+.today-page {
+  max-width: 84rem;
+}
+
+.today-page .today-header {
+  min-height: 11rem;
+  padding: var(--space-6) var(--space-8);
+  border-radius: calc(var(--radius-xl) + 0.25rem);
+  background:
+    radial-gradient(circle at 9% 18%, color-mix(in srgb, var(--color-butter-soft) 82%, transparent) 0 25%, transparent 26%),
+    linear-gradient(110deg, color-mix(in srgb, var(--color-mint-soft) 36%, var(--color-warm-surface)), var(--color-warm-surface) 56%, color-mix(in srgb, var(--color-peach-soft) 26%, var(--color-warm-surface)));
+}
+
+.today-page .today-header h2 {
+  font-size: clamp(2.25rem, 4vw, 3.2rem);
+  letter-spacing: 0;
+}
+
+.today-page .today-summary {
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.today-page .daily-summary__metric {
+  min-height: 9rem;
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--color-warm-surface);
+}
+
+.today-page .today-grid {
+  gap: var(--space-5);
+  margin-top: var(--space-6);
+}
+
+.today-page .one-thing-card {
+  min-height: 25rem;
+  padding: var(--space-7);
+  border-radius: calc(var(--radius-xl) + 0.35rem);
+}
+
+.today-page .one-thing-card--active {
+  background:
+    radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--color-peach-soft) 78%, transparent) 0 22%, transparent 23%),
+    color-mix(in srgb, var(--color-mint-soft) 54%, var(--color-warm-surface));
+}
+
+.today-page .focus-now-card__title {
+  max-width: 18ch;
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+}
+
+.today-page .quick-capture-panel,
+.today-page .energy-panel {
+  min-height: 11rem;
+  border-radius: var(--radius-xl);
+}
+
+.today-page .quick-capture-panel {
+  padding: var(--space-5);
+}
+
+.today-page .weekly-focus-panel {
+  min-height: 18rem;
+  padding: var(--space-6);
+  border-radius: calc(var(--radius-xl) + 0.25rem);
+}
+
+@media (max-width: $bp-mobile) {
+  .today-page .today-header {
+    min-height: auto;
+    padding: var(--space-5);
+  }
+
+  .today-page .today-header h2 {
+    font-size: clamp(2rem, 9vw, 2.55rem);
+  }
+
+  .today-page .today-summary {
+    margin-top: var(--space-4);
+  }
+
+  .today-page .daily-summary__metric {
+    min-height: 8.5rem;
+    padding: var(--space-4);
+  }
+
+  .today-page .today-grid {
+    margin-top: var(--space-5);
+  }
+
+  .today-page .one-thing-card {
+    min-height: auto;
+    padding: var(--space-5);
+  }
+
+  .today-page .weekly-focus-panel {
+    min-height: auto;
+    padding: var(--space-5);
+  }
+}
